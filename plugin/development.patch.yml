@@ -1,0 +1,6 @@
+- insert:
+    - id: satellite-geometry
+      name: 'file:///D:/AgentPrj/my_new_computer/work/dsh-satellite-geometry/plugin/src/index.mjs'
+      config:
+        serviceUrl: http://127.0.0.1:8787
+        connectMcp: true

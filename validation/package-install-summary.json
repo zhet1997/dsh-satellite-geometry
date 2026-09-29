@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-09-29T11:14:11.560Z",
+  "package": "@lbk/dsh-satellite-geometry",
+  "version": "0.1.0",
+  "node": "v24.14.1",
+  "sha256": "d02dcba9fc3e8c2dccc0466b66cce320dc51660af1ab45e26c8abd7ac8abdc61",
+  "bytes": 261441,
+  "productionDependenciesInstalled": true,
+  "hostEntrypointImports": true,
+  "finalPrebuiltClientAndViewerPresent": true,
+  "viewerAssets": [
+    "index-BQpg098d.js",
+    "index-CBXI_Ygb.css"
+  ],
+  "isolatedProfileInstallerPasses": true,
+  "isolatedProfileLinkResolves": true,
+  "packed194ComponentSnapshotAndPaginationPass": true,
+  "packedFilteredReadPreservesInvalidExportEvidence": true,
+  "stdioMcpToolCount": 15,
+  "pluginTestCount": 5,
+  "activeProfilePluginPath": "D:\\AgentPrj\\my_new_computer\\work\\dsh-satellite-geometry\\plugin",
+  "existingDshProfileUntouched": true,
+  "existingDshProcessNotRestarted": true,
+  "packageLockCreatedByConsumer": true,
+  "testsPassed": 5,
+  "finalViewerAssets": [
+    "index-BQpg098d.js",
+    "index-CBXI_Ygb.css"
+  ]
+}

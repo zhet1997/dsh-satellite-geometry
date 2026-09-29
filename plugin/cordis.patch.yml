@@ -1,0 +1,6 @@
+- insert:
+    - id: satellite-geometry
+      name: '@lbk/dsh-satellite-geometry'
+      config:
+        serviceUrl: http://127.0.0.1:8787
+        connectMcp: true

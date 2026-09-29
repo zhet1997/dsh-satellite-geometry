@@ -1,0 +1,784 @@
+{
+  "instanceCount": 194,
+  "maxMatrixDelta": 4.670699809139478e-07,
+  "allMatchWithinRounding1e6": true,
+  "transformConvention": "row-major 4x4; CAD inspector rounds six decimals",
+  "instances": [
+    {
+      "id": "N00002",
+      "maxMatrixDelta": 0.0
+    },
+    {
+      "id": "N00003",
+      "maxMatrixDelta": 1.8713801352987502e-07
+    },
+    {
+      "id": "N00004",
+      "maxMatrixDelta": 1.8713100757850043e-07
+    },
+    {
+      "id": "N00005",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00006",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00007",
+      "maxMatrixDelta": 3.9117003325372934e-07
+    },
+    {
+      "id": "N00008",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00009",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00010",
+      "maxMatrixDelta": 3.9117003325372934e-07
+    },
+    {
+      "id": "N00011",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00012",
+      "maxMatrixDelta": 3.9117003325372934e-07
+    },
+    {
+      "id": "N00013",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00014",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00015",
+      "maxMatrixDelta": 1.8714001726038987e-07
+    },
+    {
+      "id": "N00016",
+      "maxMatrixDelta": 1.8715002170210937e-07
+    },
+    {
+      "id": "N00017",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00018",
+      "maxMatrixDelta": 2.782800265777041e-07
+    },
+    {
+      "id": "N00019",
+      "maxMatrixDelta": 1.626303258728e-19
+    },
+    {
+      "id": "N00020",
+      "maxMatrixDelta": 4.670699809139478e-07
+    },
+    {
+      "id": "N00021",
+      "maxMatrixDelta": 2.519999497962999e-07
+    },
+    {
+      "id": "N00022",
+      "maxMatrixDelta": 4.342899728726479e-07
+    },
+    {
+      "id": "N00023",
+      "maxMatrixDelta": 1.871390082897051e-07
+    },
+    {
+      "id": "N00024",
+      "maxMatrixDelta": 1.8713801352987502e-07
+    },
+    {
+      "id": "N00025",
+      "maxMatrixDelta": 1.8714600003022497e-07
+    },
+    {
+      "id": "N00026",
+      "maxMatrixDelta": 1.8714600003022497e-07
+    },
+    {
+      "id": "N00027",
+      "maxMatrixDelta": 4.5869001041864976e-07
+    },
+    {
+      "id": "N00028",
+      "maxMatrixDelta": 4.5869001041864976e-07
+    },
+    {
+      "id": "N00029",
+      "maxMatrixDelta": 2.468785065476431e-07
+    },
+    {
+      "id": "N00030",
+      "maxMatrixDelta": 4.660199977024604e-07
+    },
+    {
+      "id": "N00031",
+      "maxMatrixDelta": 2.6007000997196883e-07
+    },
+    {
+      "id": "N00032",
+      "maxMatrixDelta": 3.277999667261611e-07
+    },
+    {
+      "id": "N00033",
+      "maxMatrixDelta": 1.0799999472510535e-07
+    },
+    {
+      "id": "N00034",
+      "maxMatrixDelta": 4.0669999634701526e-07
+    },
+    {
+      "id": "N00035",
+      "maxMatrixDelta": 4.3229999846516876e-07
+    },
+    {
+      "id": "N00036",
+      "maxMatrixDelta": 4.3229999846516876e-07
+    },
+    {
+      "id": "N00037",
+      "maxMatrixDelta": 1.0799999472510535e-07
+    },
+    {
+      "id": "N00038",
+      "maxMatrixDelta": 4.0669999634701526e-07
+    },
+    {
+      "id": "N00039",
+      "maxMatrixDelta": 4.3229999846516876e-07
+    },
+    {
+      "id": "N00040",
+      "maxMatrixDelta": 4.3229999846516876e-07
+    },
+    {
+      "id": "N00041",
+      "maxMatrixDelta": 3.277999667261611e-07
+    },
+    {
+      "id": "N00042",
+      "maxMatrixDelta": 2.6007000997196883e-07
+    },
+    {
+      "id": "N00043",
+      "maxMatrixDelta": 4.660199977024604e-07
+    },
+    {
+      "id": "N00044",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00045",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00046",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00047",
+      "maxMatrixDelta": 3.9117003325372934e-07
+    },
+    {
+      "id": "N00048",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00049",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00050",
+      "maxMatrixDelta": 3.9117003325372934e-07
+    },
+    {
+      "id": "N00051",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00052",
+      "maxMatrixDelta": 3.9117003325372934e-07
+    },
+    {
+      "id": "N00053",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00054",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00055",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00056",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00057",
+      "maxMatrixDelta": 3.9118003769544885e-07
+    },
+    {
+      "id": "N00058",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00059",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00060",
+      "maxMatrixDelta": 3.9118003769544885e-07
+    },
+    {
+      "id": "N00061",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00062",
+      "maxMatrixDelta": 3.9118003769544885e-07
+    },
+    {
+      "id": "N00063",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00064",
+      "maxMatrixDelta": 3.101200150013028e-07
+    },
+    {
+      "id": "N00065",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00066",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00067",
+      "maxMatrixDelta": 3.9118003769544885e-07
+    },
+    {
+      "id": "N00068",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00069",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00070",
+      "maxMatrixDelta": 3.9118003769544885e-07
+    },
+    {
+      "id": "N00071",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00072",
+      "maxMatrixDelta": 3.9118003769544885e-07
+    },
+    {
+      "id": "N00073",
+      "maxMatrixDelta": 4.037843289728116e-07
+    },
+    {
+      "id": "N00074",
+      "maxMatrixDelta": 4.5869001041864976e-07
+    },
+    {
+      "id": "N00075",
+      "maxMatrixDelta": 4.5869001041864976e-07
+    },
+    {
+      "id": "N00076",
+      "maxMatrixDelta": 2.468785065476431e-07
+    },
+    {
+      "id": "N00077",
+      "maxMatrixDelta": 4.6599984671047423e-07
+    },
+    {
+      "id": "N00078",
+      "maxMatrixDelta": 2.6007000997196883e-07
+    },
+    {
+      "id": "N00079",
+      "maxMatrixDelta": 3.277999667261611e-07
+    },
+    {
+      "id": "N00080",
+      "maxMatrixDelta": 1.0799999472510535e-07
+    },
+    {
+      "id": "N00081",
+      "maxMatrixDelta": 4.070000159117626e-07
+    },
+    {
+      "id": "N00082",
+      "maxMatrixDelta": 4.319999789004214e-07
+    },
+    {
+      "id": "N00083",
+      "maxMatrixDelta": 4.319999789004214e-07
+    },
+    {
+      "id": "N00084",
+      "maxMatrixDelta": 1.0799999472510535e-07
+    },
+    {
+      "id": "N00085",
+      "maxMatrixDelta": 4.070000159117626e-07
+    },
+    {
+      "id": "N00086",
+      "maxMatrixDelta": 4.319999789004214e-07
+    },
+    {
+      "id": "N00087",
+      "maxMatrixDelta": 4.319999789004214e-07
+    },
+    {
+      "id": "N00088",
+      "maxMatrixDelta": 3.277999667261611e-07
+    },
+    {
+      "id": "N00089",
+      "maxMatrixDelta": 2.6007000997196883e-07
+    },
+    {
+      "id": "N00090",
+      "maxMatrixDelta": 4.6599984671047423e-07
+    },
+    {
+      "id": "N00091",
+      "maxMatrixDelta": 4.5869001041864976e-07
+    },
+    {
+      "id": "N00092",
+      "maxMatrixDelta": 4.5869001041864976e-07
+    },
+    {
+      "id": "N00093",
+      "maxMatrixDelta": 2.468785065476431e-07
+    },
+    {
+      "id": "N00094",
+      "maxMatrixDelta": 4.6599984671047423e-07
+    },
+    {
+      "id": "N00095",
+      "maxMatrixDelta": 2.6007000997196883e-07
+    },
+    {
+      "id": "N00096",
+      "maxMatrixDelta": 3.277999667261611e-07
+    },
+    {
+      "id": "N00097",
+      "maxMatrixDelta": 1.0799999472510535e-07
+    },
+    {
+      "id": "N00098",
+      "maxMatrixDelta": 4.070000159117626e-07
+    },
+    {
+      "id": "N00099",
+      "maxMatrixDelta": 4.319999789004214e-07
+    },
+    {
+      "id": "N00100",
+      "maxMatrixDelta": 4.319999789004214e-07
+    },
+    {
+      "id": "N00101",
+      "maxMatrixDelta": 1.0799999472510535e-07
+    },
+    {
+      "id": "N00102",
+      "maxMatrixDelta": 4.070000159117626e-07
+    },
+    {
+      "id": "N00103",
+      "maxMatrixDelta": 4.319999789004214e-07
+    },
+    {
+      "id": "N00104",
+      "maxMatrixDelta": 4.319999789004214e-07
+    },
+    {
+      "id": "N00105",
+      "maxMatrixDelta": 3.277999667261611e-07
+    },
+    {
+      "id": "N00106",
+      "maxMatrixDelta": 2.6007000997196883e-07
+    },
+    {
+      "id": "N00107",
+      "maxMatrixDelta": 4.6599984671047423e-07
+    },
+    {
+      "id": "N00108",
+      "maxMatrixDelta": 4.5869001041864976e-07
+    },
+    {
+      "id": "N00109",
+      "maxMatrixDelta": 4.5869001041864976e-07
+    },
+    {
+      "id": "N00110",
+      "maxMatrixDelta": 2.468785065476431e-07
+    },
+    {
+      "id": "N00111",
+      "maxMatrixDelta": 4.660199977024604e-07
+    },
+    {
+      "id": "N00112",
+      "maxMatrixDelta": 2.6007000997196883e-07
+    },
+    {
+      "id": "N00113",
+      "maxMatrixDelta": 3.277999667261611e-07
+    },
+    {
+      "id": "N00114",
+      "maxMatrixDelta": 1.0799999472510535e-07
+    },
+    {
+      "id": "N00115",
+      "maxMatrixDelta": 4.0669999634701526e-07
+    },
+    {
+      "id": "N00116",
+      "maxMatrixDelta": 4.3229999846516876e-07
+    },
+    {
+      "id": "N00117",
+      "maxMatrixDelta": 4.3229999846516876e-07
+    },
+    {
+      "id": "N00118",
+      "maxMatrixDelta": 1.0799999472510535e-07
+    },
+    {
+      "id": "N00119",
+      "maxMatrixDelta": 4.0669999634701526e-07
+    },
+    {
+      "id": "N00120",
+      "maxMatrixDelta": 4.3229999846516876e-07
+    },
+    {
+      "id": "N00121",
+      "maxMatrixDelta": 4.3229999846516876e-07
+    },
+    {
+      "id": "N00122",
+      "maxMatrixDelta": 3.277999667261611e-07
+    },
+    {
+      "id": "N00123",
+      "maxMatrixDelta": 2.6007000997196883e-07
+    },
+    {
+      "id": "N00124",
+      "maxMatrixDelta": 4.660199977024604e-07
+    },
+    {
+      "id": "N00125",
+      "maxMatrixDelta": 0.0
+    },
+    {
+      "id": "N00126",
+      "maxMatrixDelta": 1.8699984138947912e-07
+    },
+    {
+      "id": "N00127",
+      "maxMatrixDelta": 1.8699984138947912e-07
+    },
+    {
+      "id": "N00128",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00129",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00130",
+      "maxMatrixDelta": 1.053011137364e-16
+    },
+    {
+      "id": "N00131",
+      "maxMatrixDelta": 4.406877377904e-17
+    },
+    {
+      "id": "N00132",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00133",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00134",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00135",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00136",
+      "maxMatrixDelta": 7.464198858997406e-08
+    },
+    {
+      "id": "N00137",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00138",
+      "maxMatrixDelta": 7.464299756065884e-08
+    },
+    {
+      "id": "N00139",
+      "maxMatrixDelta": 7.464299756065884e-08
+    },
+    {
+      "id": "N00140",
+      "maxMatrixDelta": 7.464299756065884e-08
+    },
+    {
+      "id": "N00141",
+      "maxMatrixDelta": 7.464299756065884e-08
+    },
+    {
+      "id": "N00142",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00143",
+      "maxMatrixDelta": 2.13162820728e-13
+    },
+    {
+      "id": "N00144",
+      "maxMatrixDelta": 3.579998519853689e-08
+    },
+    {
+      "id": "N00145",
+      "maxMatrixDelta": 1.224646799147e-16
+    },
+    {
+      "id": "N00146",
+      "maxMatrixDelta": 1.871520112217695e-07
+    },
+    {
+      "id": "N00147",
+      "maxMatrixDelta": 1.8714600003022497e-07
+    },
+    {
+      "id": "N00148",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00149",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00150",
+      "maxMatrixDelta": 3.8578997418881045e-07
+    },
+    {
+      "id": "N00151",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00152",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00153",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00154",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00155",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00156",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00157",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00158",
+      "maxMatrixDelta": 9.029974989971379e-09
+    },
+    {
+      "id": "N00159",
+      "maxMatrixDelta": 0.0
+    },
+    {
+      "id": "N00160",
+      "maxMatrixDelta": 9.029974989971379e-09
+    },
+    {
+      "id": "N00161",
+      "maxMatrixDelta": 9.029974989971379e-09
+    },
+    {
+      "id": "N00162",
+      "maxMatrixDelta": 9.029974989971379e-09
+    },
+    {
+      "id": "N00163",
+      "maxMatrixDelta": 9.019998969961307e-09
+    },
+    {
+      "id": "N00164",
+      "maxMatrixDelta": 1.8699984138947912e-07
+    },
+    {
+      "id": "N00165",
+      "maxMatrixDelta": 1.8699984138947912e-07
+    },
+    {
+      "id": "N00166",
+      "maxMatrixDelta": 1.8699984138947912e-07
+    },
+    {
+      "id": "N00167",
+      "maxMatrixDelta": 1.8699984138947912e-07
+    },
+    {
+      "id": "N00168",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00169",
+      "maxMatrixDelta": 2.13162820728e-13
+    },
+    {
+      "id": "N00170",
+      "maxMatrixDelta": 3.579998519853689e-08
+    },
+    {
+      "id": "N00171",
+      "maxMatrixDelta": 3.858000354739488e-07
+    },
+    {
+      "id": "N00172",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00173",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00174",
+      "maxMatrixDelta": 1.000444171950221e-11
+    },
+    {
+      "id": "N00175",
+      "maxMatrixDelta": 2.000888343900442e-11
+    },
+    {
+      "id": "N00176",
+      "maxMatrixDelta": 2.000888343900442e-11
+    },
+    {
+      "id": "N00177",
+      "maxMatrixDelta": 2.000888343900442e-11
+    },
+    {
+      "id": "N00178",
+      "maxMatrixDelta": 2.000888343900442e-11
+    },
+    {
+      "id": "N00179",
+      "maxMatrixDelta": 9.020027391670737e-09
+    },
+    {
+      "id": "N00180",
+      "maxMatrixDelta": 9.020027391670737e-09
+    },
+    {
+      "id": "N00181",
+      "maxMatrixDelta": 9.020027391670737e-09
+    },
+    {
+      "id": "N00182",
+      "maxMatrixDelta": 9.020027391670737e-09
+    },
+    {
+      "id": "N00183",
+      "maxMatrixDelta": 9.010022949951235e-09
+    },
+    {
+      "id": "N00184",
+      "maxMatrixDelta": 1.224646799147e-16
+    },
+    {
+      "id": "N00185",
+      "maxMatrixDelta": 2.446799953759182e-07
+    },
+    {
+      "id": "N00186",
+      "maxMatrixDelta": 2.446799953759182e-07
+    },
+    {
+      "id": "N00187",
+      "maxMatrixDelta": 2.446799953759182e-07
+    },
+    {
+      "id": "N00188",
+      "maxMatrixDelta": 2.446799953759182e-07
+    },
+    {
+      "id": "N00189",
+      "maxMatrixDelta": 2.446799953759182e-07
+    },
+    {
+      "id": "N00190",
+      "maxMatrixDelta": 3.264300403316156e-07
+    },
+    {
+      "id": "N00191",
+      "maxMatrixDelta": 4.076400728081353e-07
+    },
+    {
+      "id": "N00192",
+      "maxMatrixDelta": 1.8421008007862838e-07
+    },
+    {
+      "id": "N00193",
+      "maxMatrixDelta": 4.501399644141202e-07
+    },
+    {
+      "id": "N00194",
+      "maxMatrixDelta": 2.446799953759182e-07
+    },
+    {
+      "id": "N00195",
+      "maxMatrixDelta": 2.446799953759182e-07
+    }
+  ]
+}

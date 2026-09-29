@@ -1,0 +1,14 @@
+.git
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+data
+**/data
+runtime
+cases
+validation
+release
+**/*.tgz
+**/*.tar
+.env
+plugin

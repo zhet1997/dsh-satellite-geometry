@@ -1,0 +1,914 @@
+{
+  "generatedAt": "2026-09-29T11:38:15.350047+00:00",
+  "cases": [
+    {
+      "name": "原项目卫星装配",
+      "folder": "satellite-assembly-container",
+      "projectId": "715007d362fe43fd8a7f62b536132501",
+      "revision": 4,
+      "workflow": "passed",
+      "workflowScope": "saved simplification plus final HTTP export/download validation",
+      "reusedCompletedSimplification": true,
+      "componentCount": 194,
+      "simplifiedCount": 3,
+      "preservedCount": 191,
+      "finalExportElapsedSecondsIncludingQueue": 174.63,
+      "initialAttempt": {
+        "path": "validation/artifacts/satellite-assembly-container/initial-export-attempt.json",
+        "status": "failed",
+        "elapsedSecondsIncludingQueue": 746.07,
+        "jobs": [
+          {
+            "kind": "simplify",
+            "status": "completed",
+            "createdAt": "2026-09-29T09:45:40.048601+00:00",
+            "updatedAt": "2026-09-29T09:55:38.835119+00:00",
+            "error": null
+          },
+          {
+            "kind": "export",
+            "status": "failed",
+            "createdAt": "2026-09-29T09:55:39.154746+00:00",
+            "updatedAt": "2026-09-29T09:58:19.380309+00:00",
+            "error": "ValueError: 导出 STEP 回读拓扑检查失败"
+          }
+        ]
+      },
+      "assemblyStatus": "unknown",
+      "thermalStatus": "unknown",
+      "reportedAssemblyStatus": "unknown",
+      "reportedThermalStatus": "unknown",
+      "sourceComplete": false,
+      "envelopeComplete": false,
+      "sourceCollisionPairs": 43,
+      "envelopeFalsePositivePairs": 0,
+      "contactPairs": 63,
+      "uncertainComponents": 129,
+      "unknownPairCounts": {
+        "pairTimeouts": 12,
+        "checkBudgetPairs": 232,
+        "pairLimitPairs": 0,
+        "geometryErrorPairs": 0,
+        "invalidSourcePairs": 16
+      },
+      "sourcePairCacheHits": 206,
+      "initialEnvelopeFalsePositivePairs": 8,
+      "refinementChanges": [
+        {
+          "componentId": "N00159",
+          "from": "box",
+          "to": "multibox",
+          "method": "planar_slice_boxes_X",
+          "reason": "包络与原始实体判定不一致，依据实体/平面分层细化"
+        }
+      ],
+      "stepReadable": true,
+      "stepReadbackValid": false,
+      "sourceTopologyValid": false,
+      "invalidSourceComponentIds": [
+        "N00003",
+        "N00004",
+        "N00015",
+        "N00016",
+        "N00023",
+        "N00024",
+        "N00025",
+        "N00026",
+        "N00126",
+        "N00127",
+        "N00146",
+        "N00147",
+        "N00164",
+        "N00165",
+        "N00166",
+        "N00167"
+      ],
+      "exportStatus": "source_and_output_invalid_review_required",
+      "exportWarnings": [
+        "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+        "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+      ],
+      "stepOccurrenceCount": 194,
+      "stepPrototypeCount": 34,
+      "stepBytes": 50533575,
+      "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+      "instanceStructureVerified": true,
+      "allPosesRetained": true,
+      "poseEvidenceScope": "saved component pose fields equal originalPose fields",
+      "finalExportPerInstanceWorldGeometryVerified": true,
+      "engineeringAcceptance": "not_certified",
+      "artifactFolder": "validation/artifacts/satellite-assembly-container",
+      "finalExportPlacement": {
+        "path": "validation/assembly-final-placement-check.json",
+        "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+        "leafCount": 194,
+        "geometryComparedCount": 194,
+        "maxWorldMatrixAbsoluteDelta": 9.992007221626409e-15,
+        "maxCadRoundedMatrixAbsoluteDelta": 4.670699809139478e-07,
+        "maxWorldGeometricBoundsAbsoluteDeltaMm": 1.7053025658242404e-13,
+        "allComparedFaceCountsMatch": true,
+        "worldGeometryPlacementVerified": true,
+        "allLocalShapeRootLocationsIdentity": true,
+        "actualMergedGeometricBoundsMm": [
+          -0.11133848183224225,
+          -0.11133848182450044,
+          0.0,
+          1200.1113384819703,
+          1200.1113384819705,
+          1070.67951112229
+        ],
+        "boundsMethodExplanation": "CAD inspector transforms each prototype local AABB, a conservative box under rotation; these bounds need not equal the tight bounds measured on transformed BRep geometry. CAD curve/mesh prototype bounds can differ additionally."
+      },
+      "finalIndependentInspection": {
+        "path": "validation/assembly-final-inspection.json",
+        "sha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+        "leafOccurrenceCount": 194,
+        "cadConservativeBoundsMm": {
+          "min": [
+            -0.111338,
+            -0.111338,
+            0.0
+          ],
+          "max": [
+            1200.111338,
+            1200.111338,
+            1072.484423
+          ]
+        },
+        "snapshot": {
+          "status": "failed",
+          "attempts": 2,
+          "camera": "iso",
+          "sizeProfile": "diagnostic",
+          "displayModes": [
+            "solid",
+            "rendered"
+          ],
+          "error": "Page.evaluate: Target page, context or browser has been closed",
+          "logs": [
+            "validation/assembly-final-snapshot.stderr.log",
+            "validation/assembly-final-snapshot-retry.stderr.log"
+          ],
+          "limitation": "No primary-STEP PNG from the CAD snapshot tool was produced or reviewed. Parent may provide workbench GLB appearance evidence separately; this does not replace the failed primary STEP snapshot."
+        },
+        "engineeringAccepted": false
+      }
+    },
+    {
+      "name": "原项目 CATCH",
+      "folder": "catch-container",
+      "projectId": "51cf1056426043b59c23257fcf7695b6",
+      "revision": 5,
+      "workflow": "passed",
+      "workflowScope": "saved simplification plus final HTTP export/download validation",
+      "reusedCompletedSimplification": true,
+      "componentCount": 33,
+      "simplifiedCount": 0,
+      "preservedCount": 33,
+      "finalExportElapsedSecondsIncludingQueue": 260.92,
+      "initialAttempt": {
+        "path": "validation/artifacts/catch-container/initial-export-attempt.json",
+        "status": "failed",
+        "elapsedSecondsIncludingQueue": 779.47,
+        "jobs": [
+          {
+            "kind": "simplify",
+            "status": "completed",
+            "createdAt": "2026-09-29T09:45:50.186468+00:00",
+            "updatedAt": "2026-09-29T09:56:52.744049+00:00",
+            "error": null
+          },
+          {
+            "kind": "export",
+            "status": "failed",
+            "createdAt": "2026-09-29T09:56:53.785184+00:00",
+            "updatedAt": "2026-09-29T09:59:03.173483+00:00",
+            "error": "ValueError: 导出 STEP 回读拓扑检查失败"
+          }
+        ]
+      },
+      "assemblyStatus": "unknown",
+      "thermalStatus": "unknown",
+      "reportedAssemblyStatus": "unknown",
+      "reportedThermalStatus": "unknown",
+      "sourceComplete": false,
+      "envelopeComplete": false,
+      "sourceCollisionPairs": 10,
+      "envelopeFalsePositivePairs": 0,
+      "contactPairs": 2,
+      "uncertainComponents": 27,
+      "unknownPairCounts": {
+        "pairTimeouts": 0,
+        "checkBudgetPairs": 0,
+        "pairLimitPairs": 0,
+        "geometryErrorPairs": 0,
+        "invalidSourcePairs": 31
+      },
+      "sourcePairCacheHits": 17,
+      "initialEnvelopeFalsePositivePairs": 0,
+      "refinementChanges": [],
+      "stepReadable": true,
+      "stepReadbackValid": false,
+      "sourceTopologyValid": false,
+      "invalidSourceComponentIds": [
+        "N00004",
+        "N00005",
+        "N00009",
+        "N00018",
+        "N00019",
+        "N00026",
+        "N00027",
+        "N00028",
+        "N00029",
+        "N00030",
+        "N00031",
+        "N00033",
+        "N00034"
+      ],
+      "exportStatus": "source_and_output_invalid_review_required",
+      "exportWarnings": [
+        "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+        "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+      ],
+      "stepOccurrenceCount": 33,
+      "stepPrototypeCount": 33,
+      "stepBytes": 98104999,
+      "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+      "instanceStructureVerified": true,
+      "allPosesRetained": true,
+      "poseEvidenceScope": "saved component pose fields equal originalPose fields",
+      "finalExportPerInstanceWorldGeometryVerified": null,
+      "engineeringAcceptance": "not_certified",
+      "artifactFolder": "validation/artifacts/catch-container",
+      "finalIndependentInspection": {
+        "path": "validation/catch-final-inspection.json",
+        "sha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+        "leafOccurrenceCount": 33,
+        "cadConservativeBoundsMm": {
+          "min": [
+            -320.707757,
+            -356.75,
+            -224.965106
+          ],
+          "max": [
+            297.455826,
+            371.999018,
+            251.916547
+          ]
+        },
+        "snapshot": {
+          "status": "skipped",
+          "reason": "All 33 components retain original geometry and all poses remain unchanged; export/inspection-only verification created no visibly changed geometry. Parent explicitly allowed omission.",
+          "evidence": {
+            "componentCount": 33,
+            "strategyOriginalCount": 33,
+            "poseChangedCount": 0
+          }
+        },
+        "engineeringAccepted": false
+      }
+    },
+    {
+      "name": "有效行星减速箱组件",
+      "folder": "gearbox-container",
+      "projectId": "ea3a894c85e243edaab17500b65a0af7",
+      "revision": 2,
+      "workflow": "passed",
+      "workflowScope": "saved simplification plus final HTTP export/download validation",
+      "reusedCompletedSimplification": true,
+      "componentCount": 1,
+      "simplifiedCount": 1,
+      "preservedCount": 0,
+      "finalExportElapsedSecondsIncludingQueue": 270.62,
+      "initialAttempt": {
+        "path": "validation/artifacts/gearbox-container/initial-export-attempt.json",
+        "status": "passed",
+        "elapsedSecondsIncludingQueue": 17.28,
+        "jobs": [
+          {
+            "kind": "import",
+            "status": "completed",
+            "createdAt": "2026-09-29T10:01:30.414744+00:00",
+            "updatedAt": "2026-09-29T10:01:40.725157+00:00",
+            "error": null
+          },
+          {
+            "kind": "simplify",
+            "status": "completed",
+            "createdAt": "2026-09-29T10:01:41.491856+00:00",
+            "updatedAt": "2026-09-29T10:01:43.870007+00:00",
+            "error": null
+          },
+          {
+            "kind": "export",
+            "status": "completed",
+            "createdAt": "2026-09-29T10:01:44.530319+00:00",
+            "updatedAt": "2026-09-29T10:01:46.919204+00:00",
+            "error": null
+          }
+        ]
+      },
+      "assemblyStatus": "passed",
+      "thermalStatus": "passed",
+      "reportedAssemblyStatus": "passed",
+      "reportedThermalStatus": "passed",
+      "sourceComplete": true,
+      "envelopeComplete": true,
+      "sourceCollisionPairs": 0,
+      "envelopeFalsePositivePairs": 0,
+      "contactPairs": 0,
+      "uncertainComponents": 0,
+      "unknownPairCounts": {
+        "pairTimeouts": 0,
+        "checkBudgetPairs": 0,
+        "pairLimitPairs": 0,
+        "geometryErrorPairs": 0,
+        "invalidSourcePairs": 0
+      },
+      "sourcePairCacheHits": 0,
+      "initialEnvelopeFalsePositivePairs": 0,
+      "refinementChanges": [],
+      "stepReadable": true,
+      "stepReadbackValid": true,
+      "sourceTopologyValid": true,
+      "invalidSourceComponentIds": [],
+      "exportStatus": "valid",
+      "exportWarnings": [],
+      "stepOccurrenceCount": 1,
+      "stepPrototypeCount": 1,
+      "stepBytes": 17846,
+      "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+      "instanceStructureVerified": true,
+      "allPosesRetained": true,
+      "poseEvidenceScope": "saved component pose fields equal originalPose fields",
+      "finalExportPerInstanceWorldGeometryVerified": null,
+      "engineeringAcceptance": "not_certified",
+      "artifactFolder": "validation/artifacts/gearbox-container",
+      "componentGeometry": {
+        "faceCount": 133,
+        "solidCount": 1,
+        "dimensionsMm": [
+          180.0,
+          180.0,
+          187.5
+        ],
+        "strategy": "box",
+        "sourceValid": true,
+        "sourceTopologyValid": null,
+        "exportedFaceEntityCount": 6,
+        "exportedSolidEntityCount": 1,
+        "initialIndependentInspection": {
+          "path": "validation/gearbox-inspection.json",
+          "stepSha256": "ff35eba68dec50e42ca119d39d5efb7a52c8ad7b71448e4f7a8d2546a97a72df",
+          "faceCount": 6,
+          "dimensionsMm": [
+            180.0,
+            180.0,
+            187.5
+          ]
+        },
+        "finalIndependentInspection": {
+          "path": "validation/gearbox-final-inspection.json",
+          "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+          "faceCount": 6,
+          "dimensionsMm": [
+            180.0,
+            180.0,
+            187.5
+          ],
+          "leafOccurrenceCount": 1,
+          "shapeCount": 1
+        }
+      }
+    },
+    {
+      "name": "Dawn 推进器源缺陷回归",
+      "folder": "thruster-container",
+      "projectId": "827c9dd165e246c1a292fb7df2bd196f",
+      "revision": 2,
+      "workflow": "passed",
+      "workflowScope": "saved simplification plus final HTTP export/download validation",
+      "reusedCompletedSimplification": true,
+      "componentCount": 1,
+      "simplifiedCount": 0,
+      "preservedCount": 1,
+      "finalExportElapsedSecondsIncludingQueue": 268.79,
+      "initialAttempt": {
+        "path": "validation/artifacts/thruster-container/initial-export-attempt.json",
+        "status": "failed",
+        "elapsedSecondsIncludingQueue": 69.5,
+        "jobs": [
+          {
+            "kind": "import",
+            "status": "completed",
+            "createdAt": "2026-09-29T09:58:19.418668+00:00",
+            "updatedAt": "2026-09-29T09:59:17.327246+00:00",
+            "error": null
+          },
+          {
+            "kind": "simplify",
+            "status": "completed",
+            "createdAt": "2026-09-29T09:59:17.915115+00:00",
+            "updatedAt": "2026-09-29T09:59:22.170491+00:00",
+            "error": null
+          },
+          {
+            "kind": "export",
+            "status": "failed",
+            "createdAt": "2026-09-29T09:59:22.955158+00:00",
+            "updatedAt": "2026-09-29T09:59:29.347187+00:00",
+            "error": "ValueError: 导出 STEP 回读拓扑检查失败"
+          }
+        ]
+      },
+      "assemblyStatus": "unknown",
+      "thermalStatus": "unknown",
+      "reportedAssemblyStatus": "unknown",
+      "reportedThermalStatus": "unknown",
+      "sourceComplete": false,
+      "envelopeComplete": false,
+      "sourceCollisionPairs": 0,
+      "envelopeFalsePositivePairs": 0,
+      "contactPairs": 0,
+      "uncertainComponents": 1,
+      "unknownPairCounts": {
+        "pairTimeouts": 0,
+        "checkBudgetPairs": 0,
+        "pairLimitPairs": 0,
+        "geometryErrorPairs": 0,
+        "invalidSourcePairs": 0
+      },
+      "sourcePairCacheHits": 0,
+      "initialEnvelopeFalsePositivePairs": 0,
+      "refinementChanges": [],
+      "stepReadable": true,
+      "stepReadbackValid": false,
+      "sourceTopologyValid": false,
+      "invalidSourceComponentIds": [
+        "N00001"
+      ],
+      "exportStatus": "source_and_output_invalid_review_required",
+      "exportWarnings": [
+        "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+        "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+      ],
+      "stepOccurrenceCount": 1,
+      "stepPrototypeCount": 1,
+      "stepBytes": 11584086,
+      "stepSha256": "e372084c1a96c191812d586e47304db9b68a29f5c535f4935eb43dd61c6ab566",
+      "instanceStructureVerified": true,
+      "allPosesRetained": true,
+      "poseEvidenceScope": "saved component pose fields equal originalPose fields",
+      "finalExportPerInstanceWorldGeometryVerified": null,
+      "engineeringAcceptance": "not_certified",
+      "artifactFolder": "validation/artifacts/thruster-container",
+      "componentGeometry": {
+        "faceCount": 1756,
+        "solidCount": 1,
+        "dimensionsMm": [
+          79.19006150562926,
+          167.29881732241137,
+          66.000000200001
+        ],
+        "strategy": "original",
+        "sourceValid": false,
+        "sourceTopologyValid": false
+      }
+    }
+  ],
+  "backendTestsPassed": 24,
+  "pluginTestsPassed": 5,
+  "claims": {
+    "workflowCompletedIsNotTopologyValidity": true,
+    "topologyValidityIsNotEngineeringAcceptance": true,
+    "unknownIsNotPassed": true,
+    "engineeringAcceptance": "not_certified"
+  },
+  "nativeModel": {
+    "componentsMatched": 13,
+    "fieldsWritten": 26,
+    "unmatchedRemainUnknown": 20,
+    "assertions": {
+      "nativeDocumentTurnCompleted": true,
+      "allQuotesExact": true,
+      "allValuesEqualOriginalSpreadsheetColumns": true,
+      "allFieldsDocumentProvenance": true,
+      "uniqueDimensionCandidateWithin031mm": true,
+      "unsupportedFieldsRemainUnknown": true,
+      "geometryPoseAndAssemblyUnchanged": true,
+      "nativeShortReferenceResolved": true
+    },
+    "dimensionMatchingIsIdentityCertification": false
+  },
+  "package": {
+    "checkedAt": "2026-09-29T11:14:11.560Z",
+    "package": "@lbk/dsh-satellite-geometry",
+    "version": "0.1.0",
+    "node": "v24.14.1",
+    "sha256": "d02dcba9fc3e8c2dccc0466b66cce320dc51660af1ab45e26c8abd7ac8abdc61",
+    "bytes": 261441,
+    "productionDependenciesInstalled": true,
+    "hostEntrypointImports": true,
+    "finalPrebuiltClientAndViewerPresent": true,
+    "viewerAssets": [
+      "index-BQpg098d.js",
+      "index-CBXI_Ygb.css"
+    ],
+    "isolatedProfileInstallerPasses": true,
+    "isolatedProfileLinkResolves": true,
+    "packed194ComponentSnapshotAndPaginationPass": true,
+    "packedFilteredReadPreservesInvalidExportEvidence": true,
+    "stdioMcpToolCount": 15,
+    "pluginTestCount": 5,
+    "activeProfilePluginPath": "D:\\AgentPrj\\my_new_computer\\work\\dsh-satellite-geometry\\plugin",
+    "existingDshProfileUntouched": true,
+    "existingDshProcessNotRestarted": true,
+    "packageLockCreatedByConsumer": true,
+    "testsPassed": 5,
+    "finalViewerAssets": [
+      "index-BQpg098d.js",
+      "index-CBXI_Ygb.css"
+    ]
+  },
+  "productionPersistence": {
+    "container": "dsh-satellite-geometry-geometry-1",
+    "beforeAt": "2026-09-29T19:18:44.779461+08:00",
+    "projectsBefore": {
+      "ea3a894c85e243edaab17500b65a0af7": {
+        "name": "原项目行星减速箱单组件",
+        "revision": 2,
+        "componentCount": 1,
+        "documentCount": 0,
+        "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+        "export": {
+          "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+          "stepReadable": true,
+          "stepReadbackValid": true,
+          "sourceTopologyValid": true,
+          "invalidSourceComponentIds": [],
+          "stepOccurrenceCount": 1,
+          "stepPrototypeCount": 1,
+          "instanceStructureVerified": true,
+          "exportedAt": "2026-09-29T19:18:20.956285+08:00",
+          "warnings": [],
+          "status": "valid",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "827c9dd165e246c1a292fb7df2bd196f": {
+        "name": "原项目推进器单组件",
+        "revision": 2,
+        "componentCount": 1,
+        "documentCount": 0,
+        "stepSha256": "e372084c1a96c191812d586e47304db9b68a29f5c535f4935eb43dd61c6ab566",
+        "export": {
+          "stepSha256": "e372084c1a96c191812d586e47304db9b68a29f5c535f4935eb43dd61c6ab566",
+          "stepReadable": true,
+          "stepReadbackValid": false,
+          "sourceTopologyValid": false,
+          "invalidSourceComponentIds": [
+            "N00001"
+          ],
+          "stepOccurrenceCount": 1,
+          "stepPrototypeCount": 1,
+          "instanceStructureVerified": true,
+          "exportedAt": "2026-09-29T19:18:18.35295+08:00",
+          "warnings": [
+            "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+            "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+          ],
+          "status": "source_and_output_invalid_review_required",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "51cf1056426043b59c23257fcf7695b6": {
+        "name": "原项目 CATCH 卫星",
+        "revision": 5,
+        "componentCount": 33,
+        "documentCount": 2,
+        "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+        "export": {
+          "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+          "stepReadable": true,
+          "stepReadbackValid": false,
+          "sourceTopologyValid": false,
+          "invalidSourceComponentIds": [
+            "N00004",
+            "N00005",
+            "N00009",
+            "N00018",
+            "N00019",
+            "N00026",
+            "N00027",
+            "N00028",
+            "N00029",
+            "N00030",
+            "N00031",
+            "N00033",
+            "N00034"
+          ],
+          "stepOccurrenceCount": 33,
+          "stepPrototypeCount": 33,
+          "instanceStructureVerified": true,
+          "exportedAt": "2026-09-29T19:18:06.698057+08:00",
+          "warnings": [
+            "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+            "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+          ],
+          "status": "source_and_output_invalid_review_required",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "715007d362fe43fd8a7f62b536132501": {
+        "name": "原项目卫星装配案例",
+        "revision": 4,
+        "componentCount": 194,
+        "documentCount": 2,
+        "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+        "export": {
+          "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+          "stepReadable": true,
+          "stepReadbackValid": false,
+          "sourceTopologyValid": false,
+          "invalidSourceComponentIds": [
+            "N00003",
+            "N00004",
+            "N00015",
+            "N00016",
+            "N00023",
+            "N00024",
+            "N00025",
+            "N00026",
+            "N00126",
+            "N00127",
+            "N00146",
+            "N00147",
+            "N00164",
+            "N00165",
+            "N00166",
+            "N00167"
+          ],
+          "stepOccurrenceCount": 194,
+          "stepPrototypeCount": 34,
+          "instanceStructureVerified": true,
+          "exportedAt": "2026-09-29T19:16:37.235352+08:00",
+          "warnings": [
+            "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+            "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+          ],
+          "status": "source_and_output_invalid_review_required",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "e3146949d1fd46d1b89d6118d3cfee4f": {
+        "name": "DSH-MCP-资料抽取验收",
+        "revision": 1,
+        "componentCount": 3,
+        "documentCount": 0
+      },
+      "4a11df37a4394074b88f32d11905272c": {
+        "name": "DSH-MCP-资料抽取验收",
+        "revision": 3,
+        "componentCount": 3,
+        "documentCount": 1
+      },
+      "7a21b084584347cdabc8fe6df873c67f": {
+        "name": "四脚接触演示",
+        "revision": 2,
+        "componentCount": 3,
+        "documentCount": 0,
+        "stepSha256": "0f71626e232c4140a693339c27304e6dfd120566fcbbd1bc2f4e525b5b4c0ea2",
+        "export": {
+          "stepSha256": "0f71626e232c4140a693339c27304e6dfd120566fcbbd1bc2f4e525b5b4c0ea2",
+          "stepReadbackValid": true,
+          "exportedAt": "2026-09-29T17:07:37.708134+08:00",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "60c5d49617a94642801511ebc002b019": {
+        "name": "接触保留验收",
+        "revision": 2,
+        "componentCount": 3,
+        "documentCount": 0,
+        "stepSha256": "def41936cddf18fdaf62e8d20a4884bc43ebd4af273cf26030db0baec2af79e3",
+        "export": {
+          "stepSha256": "def41936cddf18fdaf62e8d20a4884bc43ebd4af273cf26030db0baec2af79e3",
+          "stepReadbackValid": true,
+          "exportedAt": "2026-09-29T17:00:30.010293+08:00",
+          "acceptanceIsSeparate": true
+        }
+      }
+    },
+    "restartPersistencePassed": true,
+    "afterAt": "2026-09-29T19:20:10.28607+08:00",
+    "projectsAfter": {
+      "ea3a894c85e243edaab17500b65a0af7": {
+        "name": "原项目行星减速箱单组件",
+        "revision": 2,
+        "componentCount": 1,
+        "documentCount": 0,
+        "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+        "export": {
+          "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+          "stepReadable": true,
+          "stepReadbackValid": true,
+          "sourceTopologyValid": true,
+          "invalidSourceComponentIds": [],
+          "stepOccurrenceCount": 1,
+          "stepPrototypeCount": 1,
+          "instanceStructureVerified": true,
+          "exportedAt": "2026-09-29T19:18:20.956285+08:00",
+          "warnings": [],
+          "status": "valid",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "827c9dd165e246c1a292fb7df2bd196f": {
+        "name": "原项目推进器单组件",
+        "revision": 2,
+        "componentCount": 1,
+        "documentCount": 0,
+        "stepSha256": "e372084c1a96c191812d586e47304db9b68a29f5c535f4935eb43dd61c6ab566",
+        "export": {
+          "stepSha256": "e372084c1a96c191812d586e47304db9b68a29f5c535f4935eb43dd61c6ab566",
+          "stepReadable": true,
+          "stepReadbackValid": false,
+          "sourceTopologyValid": false,
+          "invalidSourceComponentIds": [
+            "N00001"
+          ],
+          "stepOccurrenceCount": 1,
+          "stepPrototypeCount": 1,
+          "instanceStructureVerified": true,
+          "exportedAt": "2026-09-29T19:18:18.35295+08:00",
+          "warnings": [
+            "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+            "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+          ],
+          "status": "source_and_output_invalid_review_required",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "51cf1056426043b59c23257fcf7695b6": {
+        "name": "原项目 CATCH 卫星",
+        "revision": 5,
+        "componentCount": 33,
+        "documentCount": 2,
+        "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+        "export": {
+          "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+          "stepReadable": true,
+          "stepReadbackValid": false,
+          "sourceTopologyValid": false,
+          "invalidSourceComponentIds": [
+            "N00004",
+            "N00005",
+            "N00009",
+            "N00018",
+            "N00019",
+            "N00026",
+            "N00027",
+            "N00028",
+            "N00029",
+            "N00030",
+            "N00031",
+            "N00033",
+            "N00034"
+          ],
+          "stepOccurrenceCount": 33,
+          "stepPrototypeCount": 33,
+          "instanceStructureVerified": true,
+          "exportedAt": "2026-09-29T19:18:06.698057+08:00",
+          "warnings": [
+            "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+            "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+          ],
+          "status": "source_and_output_invalid_review_required",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "715007d362fe43fd8a7f62b536132501": {
+        "name": "原项目卫星装配案例",
+        "revision": 4,
+        "componentCount": 194,
+        "documentCount": 2,
+        "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+        "export": {
+          "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+          "stepReadable": true,
+          "stepReadbackValid": false,
+          "sourceTopologyValid": false,
+          "invalidSourceComponentIds": [
+            "N00003",
+            "N00004",
+            "N00015",
+            "N00016",
+            "N00023",
+            "N00024",
+            "N00025",
+            "N00026",
+            "N00126",
+            "N00127",
+            "N00146",
+            "N00147",
+            "N00164",
+            "N00165",
+            "N00166",
+            "N00167"
+          ],
+          "stepOccurrenceCount": 194,
+          "stepPrototypeCount": 34,
+          "instanceStructureVerified": true,
+          "exportedAt": "2026-09-29T19:16:37.235352+08:00",
+          "warnings": [
+            "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+            "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+          ],
+          "status": "source_and_output_invalid_review_required",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "e3146949d1fd46d1b89d6118d3cfee4f": {
+        "name": "DSH-MCP-资料抽取验收",
+        "revision": 1,
+        "componentCount": 3,
+        "documentCount": 0
+      },
+      "4a11df37a4394074b88f32d11905272c": {
+        "name": "DSH-MCP-资料抽取验收",
+        "revision": 3,
+        "componentCount": 3,
+        "documentCount": 1
+      },
+      "7a21b084584347cdabc8fe6df873c67f": {
+        "name": "四脚接触演示",
+        "revision": 2,
+        "componentCount": 3,
+        "documentCount": 0,
+        "stepSha256": "0f71626e232c4140a693339c27304e6dfd120566fcbbd1bc2f4e525b5b4c0ea2",
+        "export": {
+          "stepSha256": "0f71626e232c4140a693339c27304e6dfd120566fcbbd1bc2f4e525b5b4c0ea2",
+          "stepReadbackValid": true,
+          "exportedAt": "2026-09-29T17:07:37.708134+08:00",
+          "acceptanceIsSeparate": true
+        }
+      },
+      "60c5d49617a94642801511ebc002b019": {
+        "name": "接触保留验收",
+        "revision": 2,
+        "componentCount": 3,
+        "documentCount": 0,
+        "stepSha256": "def41936cddf18fdaf62e8d20a4884bc43ebd4af273cf26030db0baec2af79e3",
+        "export": {
+          "stepSha256": "def41936cddf18fdaf62e8d20a4884bc43ebd4af273cf26030db0baec2af79e3",
+          "stepReadbackValid": true,
+          "exportedAt": "2026-09-29T17:00:30.010293+08:00",
+          "acceptanceIsSeparate": true
+        }
+      }
+    },
+    "workbenchHttpReady": true,
+    "dshProxyReady": true,
+    "restartMethod": "Stopped dedicated DSH profile process and production Compose service, then ran Start-Workbench.ps1 -NoBrowser using Windows PowerShell 5.1",
+    "launcherPathHandlingFixedAndRevalidated": true
+  },
+  "ui": {
+    "date": "2026-09-29",
+    "browser": "Codex in-app browser",
+    "url": "http://127.0.0.1:3081/satellite-geometry/",
+    "assertions": {
+      "nativeDshAndCadSideBySide": true,
+      "sourceAndCandidateSolidMeshesVisible": true,
+      "threeDimensionalPointSelectUpdatesInspector": true,
+      "sourceTreeSelectHighlightsComponent": true,
+      "shortReferenceDraftHasReadableNames": true,
+      "laterSelectionDoesNotOverwriteEarlierDraftReference": true,
+      "all194ComponentsTransferredWithSuccessAcknowledgement": true,
+      "downloadedZipThroughDshProxy": true,
+      "scopeNotesExcludedFromIssueCount": true,
+      "invalidSourceExportWarningVisible": true,
+      "validExportTopologyStatusVisible": true,
+      "workbenchConnectedAfterColdRestart": true,
+      "final194ComponentCandidateGlbVisible": true
+    },
+    "fixtures": {
+      "pointSelection": "Mounting_plate N00002, 100 x 100 x 4 mm",
+      "largeSelection": "194 components, revision 3, fixed reference created",
+      "download": "C:/Users/49076/Downloads/satellite-package.zip"
+    },
+    "notes": "UI checks complement API and geometry tests; they do not certify engineering acceptance. Final real-case screenshot is recorded separately.",
+    "finalViewerAssets": [
+      "index-BQpg098d.js",
+      "index-CBXI_Ygb.css"
+    ],
+    "finalScreenshot": "validation/screenshots/workbench-final.png",
+    "exportWarningScreenshot": "validation/screenshots/export-review.png",
+    "fullAssemblyCandidateScreenshot": "validation/screenshots/assembly-candidate-workbench.png",
+    "fullAssemblyPrimaryStepSnapshot": {
+      "status": "failed",
+      "attempts": 2,
+      "error": "CAD snapshot browser closed during Page.evaluate",
+      "fallback": "workbench final candidate GLB screenshot; not a replacement for independent STEP snapshot"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "date": "2026-09-29",
+  "browser": "Codex in-app browser",
+  "url": "http://127.0.0.1:3081/satellite-geometry/",
+  "assertions": {
+    "nativeDshAndCadSideBySide": true,
+    "sourceAndCandidateSolidMeshesVisible": true,
+    "threeDimensionalPointSelectUpdatesInspector": true,
+    "sourceTreeSelectHighlightsComponent": true,
+    "shortReferenceDraftHasReadableNames": true,
+    "laterSelectionDoesNotOverwriteEarlierDraftReference": true,
+    "all194ComponentsTransferredWithSuccessAcknowledgement": true,
+    "downloadedZipThroughDshProxy": true,
+    "scopeNotesExcludedFromIssueCount": true,
+    "invalidSourceExportWarningVisible": true,
+    "validExportTopologyStatusVisible": true,
+    "workbenchConnectedAfterColdRestart": true,
+    "final194ComponentCandidateGlbVisible": true
+  },
+  "fixtures": {
+    "pointSelection": "Mounting_plate N00002, 100 x 100 x 4 mm",
+    "largeSelection": "194 components, revision 3, fixed reference created",
+    "download": "C:/Users/49076/Downloads/satellite-package.zip"
+  },
+  "notes": "UI checks complement API and geometry tests; they do not certify engineering acceptance. Final real-case screenshot is recorded separately.",
+  "finalViewerAssets": [
+    "index-BQpg098d.js",
+    "index-CBXI_Ygb.css"
+  ],
+  "finalScreenshot": "validation/screenshots/workbench-final.png",
+  "exportWarningScreenshot": "validation/screenshots/export-review.png",
+  "fullAssemblyCandidateScreenshot": "validation/screenshots/assembly-candidate-workbench.png",
+  "fullAssemblyPrimaryStepSnapshot": {
+    "status": "failed",
+    "attempts": 2,
+    "error": "CAD snapshot browser closed during Page.evaluate",
+    "fallback": "workbench final candidate GLB screenshot; not a replacement for independent STEP snapshot"
+  }
+}

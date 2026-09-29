@@ -1,0 +1,342 @@
+{
+  "container": "dsh-satellite-geometry-geometry-1",
+  "beforeAt": "2026-09-29T19:18:44.779461+08:00",
+  "projectsBefore": {
+    "ea3a894c85e243edaab17500b65a0af7": {
+      "name": "原项目行星减速箱单组件",
+      "revision": 2,
+      "componentCount": 1,
+      "documentCount": 0,
+      "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+      "export": {
+        "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+        "stepReadable": true,
+        "stepReadbackValid": true,
+        "sourceTopologyValid": true,
+        "invalidSourceComponentIds": [],
+        "stepOccurrenceCount": 1,
+        "stepPrototypeCount": 1,
+        "instanceStructureVerified": true,
+        "exportedAt": "2026-09-29T19:18:20.956285+08:00",
+        "warnings": [],
+        "status": "valid",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "827c9dd165e246c1a292fb7df2bd196f": {
+      "name": "原项目推进器单组件",
+      "revision": 2,
+      "componentCount": 1,
+      "documentCount": 0,
+      "stepSha256": "e372084c1a96c191812d586e47304db9b68a29f5c535f4935eb43dd61c6ab566",
+      "export": {
+        "stepSha256": "e372084c1a96c191812d586e47304db9b68a29f5c535f4935eb43dd61c6ab566",
+        "stepReadable": true,
+        "stepReadbackValid": false,
+        "sourceTopologyValid": false,
+        "invalidSourceComponentIds": [
+          "N00001"
+        ],
+        "stepOccurrenceCount": 1,
+        "stepPrototypeCount": 1,
+        "instanceStructureVerified": true,
+        "exportedAt": "2026-09-29T19:18:18.35295+08:00",
+        "warnings": [
+          "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+          "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+        ],
+        "status": "source_and_output_invalid_review_required",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "51cf1056426043b59c23257fcf7695b6": {
+      "name": "原项目 CATCH 卫星",
+      "revision": 5,
+      "componentCount": 33,
+      "documentCount": 2,
+      "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+      "export": {
+        "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+        "stepReadable": true,
+        "stepReadbackValid": false,
+        "sourceTopologyValid": false,
+        "invalidSourceComponentIds": [
+          "N00004",
+          "N00005",
+          "N00009",
+          "N00018",
+          "N00019",
+          "N00026",
+          "N00027",
+          "N00028",
+          "N00029",
+          "N00030",
+          "N00031",
+          "N00033",
+          "N00034"
+        ],
+        "stepOccurrenceCount": 33,
+        "stepPrototypeCount": 33,
+        "instanceStructureVerified": true,
+        "exportedAt": "2026-09-29T19:18:06.698057+08:00",
+        "warnings": [
+          "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+          "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+        ],
+        "status": "source_and_output_invalid_review_required",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "715007d362fe43fd8a7f62b536132501": {
+      "name": "原项目卫星装配案例",
+      "revision": 4,
+      "componentCount": 194,
+      "documentCount": 2,
+      "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+      "export": {
+        "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+        "stepReadable": true,
+        "stepReadbackValid": false,
+        "sourceTopologyValid": false,
+        "invalidSourceComponentIds": [
+          "N00003",
+          "N00004",
+          "N00015",
+          "N00016",
+          "N00023",
+          "N00024",
+          "N00025",
+          "N00026",
+          "N00126",
+          "N00127",
+          "N00146",
+          "N00147",
+          "N00164",
+          "N00165",
+          "N00166",
+          "N00167"
+        ],
+        "stepOccurrenceCount": 194,
+        "stepPrototypeCount": 34,
+        "instanceStructureVerified": true,
+        "exportedAt": "2026-09-29T19:16:37.235352+08:00",
+        "warnings": [
+          "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+          "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+        ],
+        "status": "source_and_output_invalid_review_required",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "e3146949d1fd46d1b89d6118d3cfee4f": {
+      "name": "DSH-MCP-资料抽取验收",
+      "revision": 1,
+      "componentCount": 3,
+      "documentCount": 0
+    },
+    "4a11df37a4394074b88f32d11905272c": {
+      "name": "DSH-MCP-资料抽取验收",
+      "revision": 3,
+      "componentCount": 3,
+      "documentCount": 1
+    },
+    "7a21b084584347cdabc8fe6df873c67f": {
+      "name": "四脚接触演示",
+      "revision": 2,
+      "componentCount": 3,
+      "documentCount": 0,
+      "stepSha256": "0f71626e232c4140a693339c27304e6dfd120566fcbbd1bc2f4e525b5b4c0ea2",
+      "export": {
+        "stepSha256": "0f71626e232c4140a693339c27304e6dfd120566fcbbd1bc2f4e525b5b4c0ea2",
+        "stepReadbackValid": true,
+        "exportedAt": "2026-09-29T17:07:37.708134+08:00",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "60c5d49617a94642801511ebc002b019": {
+      "name": "接触保留验收",
+      "revision": 2,
+      "componentCount": 3,
+      "documentCount": 0,
+      "stepSha256": "def41936cddf18fdaf62e8d20a4884bc43ebd4af273cf26030db0baec2af79e3",
+      "export": {
+        "stepSha256": "def41936cddf18fdaf62e8d20a4884bc43ebd4af273cf26030db0baec2af79e3",
+        "stepReadbackValid": true,
+        "exportedAt": "2026-09-29T17:00:30.010293+08:00",
+        "acceptanceIsSeparate": true
+      }
+    }
+  },
+  "restartPersistencePassed": true,
+  "afterAt": "2026-09-29T19:20:10.28607+08:00",
+  "projectsAfter": {
+    "ea3a894c85e243edaab17500b65a0af7": {
+      "name": "原项目行星减速箱单组件",
+      "revision": 2,
+      "componentCount": 1,
+      "documentCount": 0,
+      "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+      "export": {
+        "stepSha256": "cf171277cef868100adca1b2e37ef1db0fbab3ba111cacf2d610ffc8a9bd6435",
+        "stepReadable": true,
+        "stepReadbackValid": true,
+        "sourceTopologyValid": true,
+        "invalidSourceComponentIds": [],
+        "stepOccurrenceCount": 1,
+        "stepPrototypeCount": 1,
+        "instanceStructureVerified": true,
+        "exportedAt": "2026-09-29T19:18:20.956285+08:00",
+        "warnings": [],
+        "status": "valid",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "827c9dd165e246c1a292fb7df2bd196f": {
+      "name": "原项目推进器单组件",
+      "revision": 2,
+      "componentCount": 1,
+      "documentCount": 0,
+      "stepSha256": "e372084c1a96c191812d586e47304db9b68a29f5c535f4935eb43dd61c6ab566",
+      "export": {
+        "stepSha256": "e372084c1a96c191812d586e47304db9b68a29f5c535f4935eb43dd61c6ab566",
+        "stepReadable": true,
+        "stepReadbackValid": false,
+        "sourceTopologyValid": false,
+        "invalidSourceComponentIds": [
+          "N00001"
+        ],
+        "stepOccurrenceCount": 1,
+        "stepPrototypeCount": 1,
+        "instanceStructureVerified": true,
+        "exportedAt": "2026-09-29T19:18:18.35295+08:00",
+        "warnings": [
+          "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+          "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+        ],
+        "status": "source_and_output_invalid_review_required",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "51cf1056426043b59c23257fcf7695b6": {
+      "name": "原项目 CATCH 卫星",
+      "revision": 5,
+      "componentCount": 33,
+      "documentCount": 2,
+      "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+      "export": {
+        "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+        "stepReadable": true,
+        "stepReadbackValid": false,
+        "sourceTopologyValid": false,
+        "invalidSourceComponentIds": [
+          "N00004",
+          "N00005",
+          "N00009",
+          "N00018",
+          "N00019",
+          "N00026",
+          "N00027",
+          "N00028",
+          "N00029",
+          "N00030",
+          "N00031",
+          "N00033",
+          "N00034"
+        ],
+        "stepOccurrenceCount": 33,
+        "stepPrototypeCount": 33,
+        "instanceStructureVerified": true,
+        "exportedAt": "2026-09-29T19:18:06.698057+08:00",
+        "warnings": [
+          "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+          "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+        ],
+        "status": "source_and_output_invalid_review_required",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "715007d362fe43fd8a7f62b536132501": {
+      "name": "原项目卫星装配案例",
+      "revision": 4,
+      "componentCount": 194,
+      "documentCount": 2,
+      "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+      "export": {
+        "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+        "stepReadable": true,
+        "stepReadbackValid": false,
+        "sourceTopologyValid": false,
+        "invalidSourceComponentIds": [
+          "N00003",
+          "N00004",
+          "N00015",
+          "N00016",
+          "N00023",
+          "N00024",
+          "N00025",
+          "N00026",
+          "N00126",
+          "N00127",
+          "N00146",
+          "N00147",
+          "N00164",
+          "N00165",
+          "N00166",
+          "N00167"
+        ],
+        "stepOccurrenceCount": 194,
+        "stepPrototypeCount": 34,
+        "instanceStructureVerified": true,
+        "exportedAt": "2026-09-29T19:16:37.235352+08:00",
+        "warnings": [
+          "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+          "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+        ],
+        "status": "source_and_output_invalid_review_required",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "e3146949d1fd46d1b89d6118d3cfee4f": {
+      "name": "DSH-MCP-资料抽取验收",
+      "revision": 1,
+      "componentCount": 3,
+      "documentCount": 0
+    },
+    "4a11df37a4394074b88f32d11905272c": {
+      "name": "DSH-MCP-资料抽取验收",
+      "revision": 3,
+      "componentCount": 3,
+      "documentCount": 1
+    },
+    "7a21b084584347cdabc8fe6df873c67f": {
+      "name": "四脚接触演示",
+      "revision": 2,
+      "componentCount": 3,
+      "documentCount": 0,
+      "stepSha256": "0f71626e232c4140a693339c27304e6dfd120566fcbbd1bc2f4e525b5b4c0ea2",
+      "export": {
+        "stepSha256": "0f71626e232c4140a693339c27304e6dfd120566fcbbd1bc2f4e525b5b4c0ea2",
+        "stepReadbackValid": true,
+        "exportedAt": "2026-09-29T17:07:37.708134+08:00",
+        "acceptanceIsSeparate": true
+      }
+    },
+    "60c5d49617a94642801511ebc002b019": {
+      "name": "接触保留验收",
+      "revision": 2,
+      "componentCount": 3,
+      "documentCount": 0,
+      "stepSha256": "def41936cddf18fdaf62e8d20a4884bc43ebd4af273cf26030db0baec2af79e3",
+      "export": {
+        "stepSha256": "def41936cddf18fdaf62e8d20a4884bc43ebd4af273cf26030db0baec2af79e3",
+        "stepReadbackValid": true,
+        "exportedAt": "2026-09-29T17:00:30.010293+08:00",
+        "acceptanceIsSeparate": true
+      }
+    }
+  },
+  "workbenchHttpReady": true,
+  "dshProxyReady": true,
+  "restartMethod": "Stopped dedicated DSH profile process and production Compose service, then ran Start-Workbench.ps1 -NoBrowser using Windows PowerShell 5.1",
+  "launcherPathHandlingFixedAndRevalidated": true
+}

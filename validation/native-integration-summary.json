@@ -1,0 +1,151 @@
+{
+  "checkedAt": "2026-09-29T09:28:41.627Z",
+  "sessionId": "satellite-catch-documents-20260929",
+  "projectId": "51cf1056426043b59c23257fcf7695b6",
+  "revisionBefore": 3,
+  "revisionAfter": 4,
+  "componentCount": 33,
+  "componentsWithSourcedAttributes": 13,
+  "sourcedFieldCount": 26,
+  "unmatchedComponentsRemainUnknown": 20,
+  "documentsReadByNativeModel": [
+    "509a10db20e24aaf82edc90433060c79",
+    "a8170e5c4808458589f7e6ecde0de7cf"
+  ],
+  "assertions": {
+    "nativeDocumentTurnCompleted": true,
+    "allQuotesExact": true,
+    "allValuesEqualOriginalSpreadsheetColumns": true,
+    "allFieldsDocumentProvenance": true,
+    "uniqueDimensionCandidateWithin031mm": true,
+    "unsupportedFieldsRemainUnknown": true,
+    "geometryPoseAndAssemblyUnchanged": true,
+    "nativeShortReferenceResolved": true
+  },
+  "shortReferenceSessionId": "satellite-selection-reference-20260929",
+  "rawHistoryIncluded": false,
+  "observations": [
+    "Dimension matching is an inference recorded separately from original quotations; it is not an identity certificate.",
+    "The first submission was rejected by an older running service; after restart the model resubmitted successfully.",
+    "The native model used read-only file/shell tools to inspect oversized MCP spill output; componentIds filtering was subsequently added to support focused MCP verification."
+  ],
+  "components": [
+    {
+      "id": "N00009",
+      "name": "P018_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:31",
+      "sourceProduct": "探测器机箱",
+      "massKg": 0.759,
+      "powerW": 6,
+      "maxDimensionErrorMm": 0.08731688188082387
+    },
+    {
+      "id": "N00011",
+      "name": "P023_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:32",
+      "sourceProduct": "光学相机",
+      "massKg": 0.249,
+      "powerW": 3,
+      "maxDimensionErrorMm": 0.01042923142000518
+    },
+    {
+      "id": "N00012",
+      "name": "P001_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:2",
+      "sourceProduct": "星箭分离机构",
+      "massKg": 1.37,
+      "powerW": 0,
+      "maxDimensionErrorMm": 0.22953225520001297
+    },
+    {
+      "id": "N00016",
+      "name": "P007_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:23",
+      "sourceProduct": "通信电子单机",
+      "massKg": 0.116,
+      "powerW": 3,
+      "maxDimensionErrorMm": 3.998934516857844e-11
+    },
+    {
+      "id": "N00017",
+      "name": "P008_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:20",
+      "sourceProduct": "电池组",
+      "massKg": 0.237,
+      "powerW": 5,
+      "maxDimensionErrorMm": 0.30199988711947867
+    },
+    {
+      "id": "N00018",
+      "name": "P009_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:8",
+      "sourceProduct": "磁强计",
+      "massKg": 0.05,
+      "powerW": 0.5,
+      "maxDimensionErrorMm": 0.015999999999991132
+    },
+    {
+      "id": "N00019",
+      "name": "P010_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:30",
+      "sourceProduct": "载荷防污染机构",
+      "massKg": 0.136,
+      "powerW": 2,
+      "maxDimensionErrorMm": 0.025000000023425173
+    },
+    {
+      "id": "N00022",
+      "name": "P014_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:19",
+      "sourceProduct": "微推力器",
+      "massKg": 0.388,
+      "powerW": 3,
+      "maxDimensionErrorMm": 0.0009998999998401814
+    },
+    {
+      "id": "N00023",
+      "name": "P015_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:11",
+      "sourceProduct": "光纤陀螺",
+      "massKg": 0.05,
+      "powerW": 1,
+      "maxDimensionErrorMm": 0.021999999999998465
+    },
+    {
+      "id": "N00024",
+      "name": "P016_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:12",
+      "sourceProduct": "MEMS 陀螺",
+      "massKg": 0.05,
+      "powerW": 1,
+      "maxDimensionErrorMm": 0
+    },
+    {
+      "id": "N00025",
+      "name": "P017_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:5",
+      "sourceProduct": "载荷展开机构",
+      "massKg": 3.355,
+      "powerW": 5,
+      "maxDimensionErrorMm": 0.08898779403187973
+    },
+    {
+      "id": "N00026",
+      "name": "P019_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:13",
+      "sourceProduct": "星敏感器",
+      "massKg": 0.237,
+      "powerW": 2,
+      "maxDimensionErrorMm": 0.03399999989001401
+    },
+    {
+      "id": "N00032",
+      "name": "P029_part",
+      "sourceRow": "sheet:CATCH整星配套表:row:21",
+      "sourceProduct": "太阳电池阵",
+      "massKg": 6.686,
+      "powerW": 0,
+      "maxDimensionErrorMm": 0.16700000015563887
+    }
+  ]
+}

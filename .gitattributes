@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.ps1 text eol=crlf
+# Preserve the exact bytes recorded in vendor/PROVENANCE.md.
+vendor/step_occurrences.py -text

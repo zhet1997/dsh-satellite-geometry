@@ -1,0 +1,129 @@
+{
+  "inspectionPassed": true,
+  "artifact": "validation/artifacts/satellite-assembly-container/simplified.step",
+  "sha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+  "bytes": 50533575,
+  "command": "Windows CAD skill inspect refs validation/artifacts/satellite-assembly-container/simplified.step --facts --planes --positioning",
+  "units": "mm",
+  "summary": {
+    "kind": "assembly",
+    "occurrenceCount": 196,
+    "leafOccurrenceCount": 194,
+    "shapeCount": 322,
+    "faceCount": 34326,
+    "edgeCount": 92234,
+    "vertexCount": 0,
+    "bounds": {
+      "min": [
+        -0.111338,
+        -0.111338,
+        0.0
+      ],
+      "max": [
+        1200.111338,
+        1200.111338,
+        1072.484423
+      ]
+    }
+  },
+  "sizeMm": [
+    1200.2226759999999,
+    1200.2226759999999,
+    1072.484423
+  ],
+  "countNotes": "occurrenceCount includes 2 grouping nodes; shapeCount is the CAD inspector metric and is not solidCount",
+  "httpWorkflowStatus": "passed",
+  "exportValidation": {
+    "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+    "stepReadable": true,
+    "stepReadbackValid": false,
+    "sourceTopologyValid": false,
+    "invalidSourceComponentIds": [
+      "N00003",
+      "N00004",
+      "N00015",
+      "N00016",
+      "N00023",
+      "N00024",
+      "N00025",
+      "N00026",
+      "N00126",
+      "N00127",
+      "N00146",
+      "N00147",
+      "N00164",
+      "N00165",
+      "N00166",
+      "N00167"
+    ],
+    "stepOccurrenceCount": 194,
+    "stepPrototypeCount": 34,
+    "instanceStructureVerified": true,
+    "exportedAt": "2026-09-29T11:16:37.235352+00:00",
+    "warnings": [
+      "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+      "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+    ],
+    "status": "source_and_output_invalid_review_required",
+    "acceptanceIsSeparate": true
+  },
+  "assemblyStatus": "unknown",
+  "thermalStatus": "unknown",
+  "placementValidation": {
+    "stepSha256": "5ffe2e95cd3a111a42145de65ecf9c7eb812a7d6b49706219248936fdd1af56c",
+    "leafCount": 194,
+    "geometryComparedCount": 194,
+    "maxWorldMatrixAbsoluteDelta": 9.992007221626409e-15,
+    "maxCadRoundedMatrixAbsoluteDelta": 4.670699809139478e-07,
+    "maxWorldGeometricBoundsAbsoluteDeltaMm": 1.7053025658242404e-13,
+    "allComparedFaceCountsMatch": true,
+    "worldGeometryPlacementVerified": true,
+    "allLocalShapeRootLocationsIdentity": true,
+    "actualMergedGeometricBoundsMm": [
+      -0.11133848183224225,
+      -0.11133848182450044,
+      0.0,
+      1200.1113384819703,
+      1200.1113384819705,
+      1070.67951112229
+    ]
+  },
+  "boundsExplanation": {
+    "cadReportedBoundsMethod": "Local prototype bounding boxes transformed by each occurrence matrix and merged; rotated boxes are conservative. Prototype boxes used for visualization also depend on geometry/mesh bounding implementation.",
+    "brepComparisonMethod": "Independent XCAF import, BRepBndLib.AddOptimal(useTriangulation=False,useShapeTolerance=False) for every exported world shape vs the independently imported source/candidate moved once by the project pose.",
+    "highestFourIds": [
+      "N00029",
+      "N00076",
+      "N00093",
+      "N00110"
+    ],
+    "highestActualZMm": 1070.67951112229,
+    "highestCadBoxZMm": 1072.484423,
+    "previousExportCadBoxZMm": 1070.165395,
+    "conclusion": "All 194 poses and world BRep bounds match expected geometry; there is no evidence of double-applied Location or assembly displacement. The CAD viewer box extrema are not a tight world-geometry measurement.",
+    "evidence": "validation/assembly-final-placement-check.json"
+  },
+  "snapshot": {
+    "status": "failed",
+    "attempts": 2,
+    "camera": "iso",
+    "sizeProfile": "diagnostic",
+    "displayModes": [
+      "solid",
+      "rendered"
+    ],
+    "error": "Page.evaluate: Target page, context or browser has been closed",
+    "logs": [
+      "validation/assembly-final-snapshot.stderr.log",
+      "validation/assembly-final-snapshot-retry.stderr.log"
+    ],
+    "limitation": "No primary-STEP PNG from the CAD snapshot tool was produced or reviewed. Parent may provide workbench GLB appearance evidence separately; this does not replace the failed primary STEP snapshot."
+  },
+  "engineeringAccepted": false,
+  "limitations": [
+    "STEP is readable and all expected leaves/placements exist; both source and exported topology are invalid, requiring review/repair.",
+    "This verification does not establish a one-to-one mapping of every source topology defect to every output defect.",
+    "Readability, placement equality and appearance do not certify assembly/contact or thermal engineering acceptance."
+  ],
+  "rawEvidence": "validation/assembly-final-inspection.raw.json"
+}

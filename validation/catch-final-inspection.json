@@ -1,0 +1,84 @@
+{
+  "inspectionPassed": true,
+  "artifact": "validation/artifacts/catch-container/simplified.step",
+  "sha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+  "bytes": 98104999,
+  "command": "Windows CAD skill inspect refs validation/artifacts/catch-container/simplified.step --facts --planes --positioning",
+  "units": "mm",
+  "summary": {
+    "kind": "assembly",
+    "occurrenceCount": 35,
+    "leafOccurrenceCount": 33,
+    "shapeCount": 2175,
+    "faceCount": 14318,
+    "edgeCount": 59569,
+    "vertexCount": 0,
+    "bounds": {
+      "min": [
+        -320.707757,
+        -356.75,
+        -224.965106
+      ],
+      "max": [
+        297.455826,
+        371.999018,
+        251.916547
+      ]
+    }
+  },
+  "sizeMm": [
+    618.163583,
+    728.749018,
+    476.88165300000003
+  ],
+  "countNotes": "occurrenceCount includes 2 grouping nodes; shapeCount is the CAD inspector metric and is not solidCount",
+  "httpWorkflowStatus": "passed",
+  "exportValidation": {
+    "stepSha256": "4171fe1ae5fa40b35dc3d56c1f9b677baaf6de2a5ee91da0fd08b6982ce65c28",
+    "stepReadable": true,
+    "stepReadbackValid": false,
+    "sourceTopologyValid": false,
+    "invalidSourceComponentIds": [
+      "N00004",
+      "N00005",
+      "N00009",
+      "N00018",
+      "N00019",
+      "N00026",
+      "N00027",
+      "N00028",
+      "N00029",
+      "N00030",
+      "N00031",
+      "N00033",
+      "N00034"
+    ],
+    "stepOccurrenceCount": 33,
+    "stepPrototypeCount": 33,
+    "instanceStructureVerified": true,
+    "exportedAt": "2026-09-29T11:18:06.698057+00:00",
+    "warnings": [
+      "源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过",
+      "STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应"
+    ],
+    "status": "source_and_output_invalid_review_required",
+    "acceptanceIsSeparate": true
+  },
+  "assemblyStatus": "unknown",
+  "thermalStatus": "unknown",
+  "snapshot": {
+    "status": "skipped",
+    "reason": "All 33 components retain original geometry and all poses remain unchanged; export/inspection-only verification created no visibly changed geometry. Parent explicitly allowed omission.",
+    "evidence": {
+      "componentCount": 33,
+      "strategyOriginalCount": 33,
+      "poseChangedCount": 0
+    }
+  },
+  "engineeringAccepted": false,
+  "limitations": [
+    "STEP is readable and all expected leaves exist; both source and exported topology are invalid, requiring review/repair.",
+    "Readability, component counts and visual appearance do not certify assembly/contact or thermal engineering acceptance."
+  ],
+  "rawEvidence": "validation/catch-final-inspection.raw.json"
+}

@@ -1,0 +1,21 @@
+name: dsh-satellite-geometry
+services:
+  geometry:
+    build: .
+    image: dsh-satellite-geometry:0.1.0
+    ports:
+      - "${SATCAD_BIND_ADDRESS:-127.0.0.1}:${SATCAD_PORT:-8787}:8787"
+    volumes:
+      - project-data:/data
+    environment:
+      SATCAD_DATA_ROOT: /data
+      SATCAD_TOKEN: ${SATCAD_TOKEN:-}
+      SATCAD_PAIR_TIMEOUT_SECONDS: ${SATCAD_PAIR_TIMEOUT_SECONDS:-10}
+      SATCAD_CHECK_BUDGET_SECONDS: ${SATCAD_CHECK_BUDGET_SECONDS:-300}
+      SATCAD_MAX_EXACT_PAIRS: ${SATCAD_MAX_EXACT_PAIRS:-1500}
+      SATCAD_JOB_TIMEOUT_SECONDS: ${SATCAD_JOB_TIMEOUT_SECONDS:-3600}
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+volumes:
+  project-data:

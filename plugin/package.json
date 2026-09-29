@@ -1,0 +1,22 @@
+{
+  "name": "@lbk/dsh-satellite-geometry",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": { ".": "./src/index.mjs", "./client": "./lib/client.js", "./package.json": "./package.json" },
+  "files": ["src", "lib", "mcp", "public", "skills", "cordis.patch.yml", "install-profile.mjs", "README.md"],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": { "platform": "web", "inject": ["@deepseek-ai/dsh-client-connection", "@deepseek-ai/dsh-client-runtime", "@deepseek-ai/dsh-client-ui-conversation", "@deepseek-ai/dsh-client-ui-settings-plugins"] }
+  },
+  "scripts": { "build": "node build.mjs", "test": "node --test tests/*.test.mjs", "mcp": "node mcp/server.mjs", "install:profile": "node install-profile.mjs" },
+  "dependencies": {
+    "@deepseek-ai/dsh-mcp-client": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-skill-filesystem": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-tools": "0.1.1-rc.2",
+    "@deepseek-ai/schemastery": "3.18.1",
+    "@modelcontextprotocol/sdk": "^1.25.0"
+  },
+  "devDependencies": { "esbuild": "^0.25.0" }
+}

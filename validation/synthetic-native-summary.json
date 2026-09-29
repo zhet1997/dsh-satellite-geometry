@@ -1,0 +1,22 @@
+{
+  "sessionId": "satellite-plugin-integration-20260929",
+  "projectId": "4a11df37a4394074b88f32d11905272c",
+  "documentId": "3ef9b6e34eaf4249b0702b8ef01e64bf",
+  "revision": 3,
+  "tools": [
+    "skill",
+    "mcp__satellite_geometry__satellite_read_project",
+    "mcp__satellite_geometry__satellite_read_document",
+    "mcp__satellite_geometry__satellite_submit_metadata",
+    "mcp__satellite_geometry__satellite_read_project"
+  ],
+  "completed": true,
+  "assertions": {
+    "powerExtracted": true,
+    "fixedExtracted": true,
+    "materialExtracted": true,
+    "unknownMassPreserved": true,
+    "unmentionedComponentUnchanged": true,
+    "sourceQuotesPresent": true
+  }
+}

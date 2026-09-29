@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-09-29T17:32:08.6615445+08:00",
+  "runningJob": "448e666c591c44c2b2ed9f9663ba8885",
+  "samples": [
+    {
+      "milliseconds": 101,
+      "healthy": true
+    },
+    {
+      "milliseconds": 5,
+      "healthy": true
+    },
+    {
+      "milliseconds": 3,
+      "healthy": true
+    },
+    {
+      "milliseconds": 3,
+      "healthy": true
+    },
+    {
+      "milliseconds": 4,
+      "healthy": true
+    }
+  ]
+}
