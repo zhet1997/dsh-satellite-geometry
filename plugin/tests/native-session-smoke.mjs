@@ -1,5 +1,6 @@
 // Explicit integration check, never part of npm test. Uses only a synthetic test fixture.
 import fs from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 const host = 'http://127.0.0.1:3081'
 const service = process.env.SATCAD_TEST_SERVICE || 'http://127.0.0.1:8787'
 const sessionId = 'satellite-plugin-integration-20260929'
@@ -26,7 +27,7 @@ if (process.argv.includes('--prepare')) {
   docs.append('file', new Blob(['验收用合成资料，非真实卫星参数。\nFour_foot_device（组件 N00003）：额定功耗 12.5 W；质量未知；安装后位置固定。\nMounting_plate（组件 N00002）：材料为铝合金；质量未提供。\n'], { type: 'text/plain' }), 'synthetic-specification.txt')
   const document = await api(`/api/projects/${state.projectId}/documents`, { method: 'POST', body: docs })
   state.documentId = document.document?.id || document.id
-  await rpc('session.create', { sessionId, cwd: 'D:/AgentPrj/my_new_computer/work/dsh-satellite-geometry' })
+  await rpc('session.create', { sessionId, cwd: fileURLToPath(new URL('../../', import.meta.url)) })
   await rpc('session.rename', { sessionId, title: '卫星插件 MCP 资料抽取验收（合成数据）' })
   const prompt = `这是已授权的插件集成验收，仅操作合成项目 ${state.projectId}，资料ID ${state.documentId}。请用 satellite MCP 工具 read_project、read_document 读取该项目和资料，抽取有原文支持的功耗、固定约束、材料，使用 submit_metadata 提交到正确组件，sources必须包含documentId、精确原文quote和field。资料中未提供质量，必须保留未知，不能补造。当前任务无需再征求批准。不要运行shell、不要移动或简化几何、不涉及其他项目。结束时简短报告实际调用工具和写入结果。`
   await rpc('session.prompt', { sessionId, mode: 'queue', content: [{ type: 'text', text: prompt }], clientTimeZone: 'Asia/Shanghai' })

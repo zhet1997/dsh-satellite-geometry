@@ -15,8 +15,8 @@ const namespace = 'satellite-geometry'
 export const name = namespace
 export const inject = ['webServer', 'connection', 'settings', 'credentials', 'tools']
 export const Config = z.object({
-  serviceUrl: z.string().default('http://127.0.0.1:8787'),
-  connectMcp: z.boolean().default(true),
+  serviceUrl: z.string().default('http://127.0.0.1:8787').volatile(),
+  connectMcp: z.boolean().default(true).volatile(),
 })
 export function normalizeEndpoint(value) {
   const url = new URL(value)
@@ -40,8 +40,9 @@ function staticFile(res, file) {
   res.writeHead(200, { 'content-type': mime, 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff', 'content-security-policy': "frame-ancestors 'self'" }); fs.createReadStream(file).pipe(res)
 }
 export async function apply(ctx, config) {
-  const settings = ctx.settings.register(namespace, Config, { base: config, applies: 'restart' })
-  let effective = settings.get()
+  ctx.effect(() => ctx.settings.configure({ auto: false }, ctx.fiber))
+  const readConfig = () => ({ serviceUrl: config.serviceUrl.get(), connectMcp: config.connectMcp.get() })
+  let effective = readConfig()
   let endpoint = normalizeEndpoint(process.env.SATCAD_SERVICE_URL || effective.serviceUrl)
   const selectionContexts = new SelectionContextStore(path.join(process.env.DSH_HOME || path.join(os.homedir(), '.dsh'), 'satellite-geometry', 'selection-contexts'))
   ctx.tools.register(defineTool({
@@ -62,7 +63,7 @@ export async function apply(ctx, config) {
   }
   await connect()
   ctx.inject(['skills'], skillCtx => { skillCtx.plugin(SkillFilesystem, { providerName: 'satellite-geometry', includeDefaultRoots: false, customSkillDirs: [path.join(root, 'skills')], watch: false }) })
-  ctx.connection.rpc.handle('/satellite-geometry-rpc', async (operation, payload, signal) => {
+  const handleRequest = async (operation, payload, signal) => {
     try {
       if (operation === 'selection.snapshot') return { ok: true, value: await selectionContexts.create(payload, endpoint) }
       if (operation === 'settings') return { ok: true, value: { serviceUrl: endpoint, tokenConfigured: Boolean(await token()), connectMcp: effective.connectMcp, workbenchUrl: '/satellite-geometry/' } }
@@ -70,8 +71,8 @@ export async function apply(ctx, config) {
         const serviceUrl = normalizeEndpoint(payload?.serviceUrl)
         if (payload?.clearToken === true) await ctx.credentials.unset('SATCAD_SERVICE_TOKEN')
         else if (typeof payload?.token === 'string' && payload.token.trim()) await ctx.credentials.set('SATCAD_SERVICE_TOKEN', payload.token.trim())
-        await settings.update({ serviceUrl })
-        effective = settings.get(); endpoint = serviceUrl; await connect()
+        await ctx.settings.update(namespace, { serviceUrl })
+        effective = readConfig(); endpoint = serviceUrl; await connect()
         return { ok: true, value: { serviceUrl, connected: true } }
       }
       if (operation === 'check') {
@@ -81,9 +82,24 @@ export async function apply(ctx, config) {
       }
       throw new Error('未知操作')
     } catch (e) { return { ok: false, error: { code: 'internal', message: e.message } } }
-  }, { authority: 'loopback' })
+  }
+  // Exact routes share DSH's authenticated /api transport. Custom RPC channels
+  // in 0.2.0-rc.2 incorrectly access webServer from the connection's owner.
+  for (const operation of ['selection.snapshot', 'settings', 'configure', 'check']) {
+    ctx.connection.fetch.register({
+      path: `/api/satellite-geometry/${operation}`, methods: ['POST'], requestBody: 'buffered',
+      fetch: async request => {
+        let message
+        try { message = await request.json() } catch { return new Response('Invalid JSON', { status: 400 }) }
+        if (message?.type !== 'client-request' || typeof message.rpcId !== 'string' || message.method !== `${namespace}/${operation}`) return new Response('Invalid RPC envelope', { status: 400 })
+        return Response.json({ type: 'server-response', rpcId: message.rpcId, result: await handleRequest(operation, message.payload, request.signal) })
+      },
+    })
+  }
   ctx.webServer.register({ kind: 'prefix', path: '/api/cad', handler: async (req, res) => {
     if (!sameOrigin(req)) return json(res, 403, { error: '仅接受本机同源请求' })
+    const rejection = ctx.connection.requestRejection(req)
+    if (rejection) return json(res, rejection, { error: '请先登录 DSH' })
     const incoming = new URL(req.url, 'http://localhost')
     const target = new URL(`${endpoint}/api${incoming.pathname.slice('/api/cad'.length)}${incoming.search}`)
     const headers = { ...req.headers, host: target.host }
@@ -99,6 +115,15 @@ export async function apply(ctx, config) {
   } })
   ctx.webServer.register({ kind: 'prefix', path: '/satellite-geometry', handler: (req, res) => {
     if (!sameOrigin(req)) return json(res, 403, { error: '仅接受本机同源请求' })
+    // Exchange DSH's launch token at our index, retaining its signed cookie and
+    // relative clean redirect, so the desktop shortcut opens the workbench.
+    const entryUrl = new URL(req.url, 'http://localhost')
+    if (entryUrl.pathname === '/satellite-geometry/' && entryUrl.searchParams.has('token')) {
+      req.url = `/${entryUrl.search}`
+      ctx.connection.authorizeIndex(req, res)
+      return
+    }
+    if (!ctx.connection.authorizeIndex(req, res)) return
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname)
     if (pathname === '/satellite-geometry' || pathname === '/satellite-geometry/') return staticFile(res, path.join(root, 'public/workbench.html'))
     if (pathname.startsWith('/satellite-geometry/viewer/')) {

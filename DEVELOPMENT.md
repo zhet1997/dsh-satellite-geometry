@@ -23,7 +23,7 @@
 ## 本机运行约定
 
 - 几何HTTP服务端口：8787。
-- 源文件：本仓库Windows路径，与WSL中 `/mnt/d/AgentPrj/my_new_computer/work/dsh-satellite-geometry` 对应。
+- 源文件：本仓库Windows路径，与WSL中 `/mnt/d/Codes/dsh-satellite-geometry` 对应。
 - 本机开发Python：WSL `/home/zhet/.venvs/dsh-satellite-geometry/bin/python`，Python3.12与CadQuery2.8。
 - DSH已有3080实例不作为随意重启的开发进程；新插件先在独立实例/profile验证。
 - 项目数据库与产物放在单独持久目录，容器发布时挂载数据卷。

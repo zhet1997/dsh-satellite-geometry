@@ -1,6 +1,7 @@
 // Explicit, authorized integration check on the imported CATCH satellite project.
 // Not part of npm test; writes sourced metadata only, never geometry or pose.
 import fs from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 const host = 'http://127.0.0.1:3081'
 const service = 'http://127.0.0.1:8789'
 const sessionId = 'satellite-catch-documents-20260929'
@@ -20,7 +21,7 @@ if (process.argv.includes('--retry')) {
 } else if (process.argv.includes('--prompt')) {
   const before = await project()
   await fs.writeFile(new URL('catch-native-before.json', evidenceDir), JSON.stringify(before, null, 2))
-  await rpc('session.create', { sessionId, cwd: 'D:/AgentPrj/my_new_computer/work/dsh-satellite-geometry' })
+  await rpc('session.create', { sessionId, cwd: fileURLToPath(new URL('../../', import.meta.url)) })
   await rpc('session.rename', { sessionId, title: 'CATCH 卫星真实资料抽取验收' })
   const prompt = `这是已授权的 DSH 插件验收。仅操作项目 ${projectId}（原项目 CATCH 卫星，33个组件），相关原始DOCX资料ID ${documentIds[0]}、XLSX资料ID ${documentIds[1]}。请加载 satellite-geometry skill，用 satellite MCP read_project 和 read_document 读取实际模型及两份资料。将能够可靠对应到组件的质量、功耗、材料等属性抽取并提交；组件名如P013_part与中文资料名可能不同，可依据唯一吻合的包络尺寸（考虑轴向排列与合理数值容差）及文档上下文对应，并在 notes 记录匹配依据；重复或不唯一匹配必须保留未知。至少认真寻找一个可靠映射，但没有证据时不要为达标强填。submit_metadata 用 origin:document，每个已给字段都有sources[{documentId,quote:精确原文,field}]，包括fixed:false也需来源，因此资料未说明固定性就省略。未提供值保持未知，不能假设0、false或常用材料。记录匹配置信度及仍需人工核对项。使用当前revision，不运行shell，不改名、分组、简化、位移、检查或导出，不访问其他项目。已有本任务授权，无需另行确认。结束时简要报告你实际读了哪些资料、写入哪些有依据属性和哪些未知。`
   await rpc('session.prompt', { sessionId, mode: 'queue', content: [{ type: 'text', text: prompt }], clientTimeZone: 'Asia/Shanghai' })

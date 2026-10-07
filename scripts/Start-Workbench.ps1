@@ -41,6 +41,17 @@ function Test-GeometryService {
   } catch { return $false }
 }
 
+# Systemd services alone do not keep WSL alive after its last client exits.
+$satelliteKeepaliveFile = Join-Path $satelliteRuntime 'wsl-keepalive.pid'
+$satelliteKeepalive = $null
+if (Test-Path $satelliteKeepaliveFile) {
+  $satelliteKeepalive = Get-CimInstance Win32_Process -Filter "ProcessId=$(Get-Content $satelliteKeepaliveFile)" -ErrorAction SilentlyContinue
+}
+if (-not $satelliteKeepalive -or $satelliteKeepalive.CommandLine -notmatch 'sleep infinity') {
+  $satelliteKeepalive = Start-Process wsl.exe -ArgumentList @('-d', $Distro, '--cd', '/', '--exec', 'sleep', 'infinity') -WindowStyle Hidden -PassThru
+  $satelliteKeepalive.Id | Set-Content $satelliteKeepaliveFile
+}
+
 if (-not (Test-GeometryService)) {
   & wsl.exe -d $Distro -u root -- systemctl start docker
   if ($LASTEXITCODE -ne 0) { throw '无法启动 WSL 中的 Docker，请检查 Ubuntu 环境。' }
@@ -57,8 +68,19 @@ if (-not (Test-GeometryService)) {
 }
 
 $satelliteDshUrl = "http://127.0.0.1:$DshPort/satellite-geometry/"
+function Get-WorkbenchLaunchUrl {
+  $satelliteLog = Join-Path $satelliteRuntime 'dsh.stdout.log'
+  if (Test-Path $satelliteLog) {
+    $satelliteMatch = [regex]::Match([string](Get-Content $satelliteLog -Raw), "http://127\.0\.0\.1:$DshPort/\?token=[^\s]+")
+    if ($satelliteMatch.Success) { return $satelliteMatch.Value.Replace('/?token=', '/satellite-geometry/?token=') }
+  }
+  return $satelliteDshUrl
+}
+function Test-Workbench {
+  try { return (Invoke-WebRequest (Get-WorkbenchLaunchUrl) -SessionVariable satelliteProbeSession -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200 } catch { return $false }
+}
 $satelliteDshReady = $false
-try { $satelliteDshReady = (Invoke-WebRequest $satelliteDshUrl -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200 } catch {}
+$satelliteDshReady = Test-Workbench
 if (-not $satelliteDshReady) {
   $satelliteDshCommand = Get-Command dsh.ps1 -ErrorAction Stop
   $satelliteDshBin = Join-Path (Split-Path $satelliteDshCommand.Source -Parent) 'node_modules\@deepseek-ai\dsh\lib\bin.js'
@@ -71,10 +93,10 @@ if (-not $satelliteDshReady) {
   $satelliteProcess.Id | Set-Content -LiteralPath (Join-Path $satelliteRuntime 'dsh.pid')
   $satelliteDeadline = (Get-Date).AddSeconds(60)
   while (-not $satelliteDshReady) {
-    try { $satelliteDshReady = (Invoke-WebRequest $satelliteDshUrl -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200 } catch {}
+    $satelliteDshReady = Test-Workbench
     if ((Get-Date) -gt $satelliteDeadline) { throw 'DSH 工作台启动超时，请查看 runtime 目录中的日志。' }
     if (-not $satelliteDshReady) { Start-Sleep -Milliseconds 700 }
   }
 }
-if (-not $NoBrowser) { Start-Process $satelliteDshUrl }
+if (-not $NoBrowser) { Start-Process (Get-WorkbenchLaunchUrl) }
 Write-Output "工作台已就绪：$satelliteDshUrl"

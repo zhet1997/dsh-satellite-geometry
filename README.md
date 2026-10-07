@@ -1,10 +1,14 @@
 # 卫星几何工作台 · DSH 插件
 
+后续继续开发或拆分原 Agent Web 其他模块，请先阅读 [开发交接文档](HANDOFF.md)，其中汇总本机/5090 路径、三个卫星算例、DSH 适配经验和迁移入口（2026-10-07 复核）。
+
 独立的 STEP 几何简化、装配检查与资料整理工作台。左侧使用 DSH 原生对话及其现有模型连接；右侧提供三维视图、装配树、局部操作和检查报告。几何内核及文档读取运行在独立 Docker 服务中。
 
 这是首个可运行版本。检查结果按热分析前处理和装配几何分别报告，保留原始文件、原始位姿、每次修订和属性出处。完整验证记录见 [VALIDATION.md](VALIDATION.md)。
 
 ## 在这台电脑上使用
+
+工程位置：`D:\Codes\dsh-satellite-geometry`（WSL：`/mnt/d/Codes/dsh-satellite-geometry`）。本地 Git 仓库保留了原始开发历史；目录迁移和验证记录见 [MIGRATION.md](MIGRATION.md)。
 
 双击桌面的 **卫星几何工作台**。启动器会复用或启动 WSL Ubuntu 内的 Docker 服务及独立的 DSH `satellite-geometry` 配置，然后打开：
 
@@ -54,7 +58,7 @@
 
 ## 构建与迁移
 
-本机源代码构建需要 Node.js、DSH **0.1.1-rc.2**、WSL Ubuntu 和可运行的 Docker：
+本机源代码构建需要 Node.js、DSH **0.2.0-rc.2**、WSL Ubuntu 和可运行的 Docker：
 
 ```powershell
 & .\scripts\Build-Local.ps1
@@ -78,7 +82,7 @@ ssh -N -L 8787:127.0.0.1:8787 your-server
 
 本机桌面启动器固定使用 `8787`。其他部署可以修改 `SATCAD_PORT`，但需要手动运行 Compose，并在插件中填写对应地址；桌面启动器会对非默认端口给出即时提示，避免等待后误报超时。远程计算时直接打开 DSH 即可，无须再用本机计算服务启动器。
 
-在本机 DSH 的“设置 → 插件 → 卫星几何工作台”填写计算服务地址并检查连接。也可使用已配置访问控制的 HTTPS 地址；如服务配置 `SATCAD_TOKEN`，在插件设置中保存同一访问令牌。令牌保存在 DSH 凭据服务，不写入模型对话或前端源码。
+在本机 DSH 的“设置 → 内置插件 → 卫星几何”填写计算服务地址并检查连接。也可使用已配置访问控制的 HTTPS 地址；如服务配置 `SATCAD_TOKEN`，在插件设置中保存同一访问令牌。令牌保存在 DSH 凭据服务，不写入模型对话或前端源码。
 
 插件包含 Node stdio MCP 桥接器：DSH 通过 MCP 调用它，它再访问几何 HTTP 服务。远程部署只改变服务地址，不需要在轻量客户端安装 CadQuery。STEP/GLB 文件由代理传输，避免把大文件作为模型上下文。
 
@@ -94,3 +98,6 @@ cd ../plugin && npm ci && npm test && npm run build
 ```
 
 后端协议与几何判定边界见 [service/README.md](service/README.md)，来源案例见 [cases/README.md](cases/README.md)。移植自用户原项目的代码出处见 [vendor/PROVENANCE.md](vendor/PROVENANCE.md) 和 [vendor/NOTICE.md](vendor/NOTICE.md)。本仓库是用户本地项目的独立提取，没有将原项目素材或代码公开发布。
+# 2026-10-02 更新
+
+本机网页版已升级 DSH **0.2.0-rc.2**，对应卫星插件安装包为 **0.2.0**。设置接口、浏览器认证、插件设置页和桌面启动器已适配。使用桌面“卫星几何工作台”或“DSH 网页版”快捷方式完成首次登录。详见 [升级与验证说明](UPGRADE-0.2.md)。原 VALIDATION.md 保留 0.1.0 几何验收记录。

@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-07T07:24:47.437Z",
+  "from": "D:/AgentPrj/my_new_computer/work/dsh-satellite-geometry",
+  "to": "D:/Codes/dsh-satellite-geometry",
+  "originalGitHead": "6244c57f2c4836ae5e67220899bf5d11f362fe2e",
+  "filesComparedImmediatelyAfterMove": 30813,
+  "bytesComparedImmediatelyAfterMove": 1826106697,
+  "relativePathsAndLengthsMatched": true,
+  "keyCaseAndPackageHashesMatched": true,
+  "profileJunctionsUpdated": [
+    "satellite-geometry",
+    "desktop"
+  ],
+  "internalTestJunctionsUpdated": 3,
+  "desktopShortcutsUpdated": 2,
+  "dshVersion": "0.2.0-rc.2",
+  "pluginVersion": "0.2.0",
+  "pluginTestsPassed": 5,
+  "webBuildPassed": true,
+  "pluginBuildPassed": true,
+  "windowsPowerShell51LaunchersPassed": true,
+  "authenticatedWorkbenchAndViewerPassed": true,
+  "viewerAssetsPassed": 2,
+  "geometryHealth": "ok",
+  "projectStatesUnchanged": [
+    {
+      "id": "4a11df37a4394074b88f32d11905272c",
+      "name": "DSH-MCP-资料抽取验收",
+      "revision": 3
+    },
+    {
+      "id": "51cf1056426043b59c23257fcf7695b6",
+      "name": "原项目 CATCH 卫星",
+      "revision": 7
+    },
+    {
+      "id": "60c5d49617a94642801511ebc002b019",
+      "name": "接触保留验收",
+      "revision": 2
+    },
+    {
+      "id": "715007d362fe43fd8a7f62b536132501",
+      "name": "原项目卫星装配案例",
+      "revision": 4
+    },
+    {
+      "id": "7a21b084584347cdabc8fe6df873c67f",
+      "name": "四脚接触演示",
+      "revision": 2
+    },
+    {
+      "id": "827c9dd165e246c1a292fb7df2bd196f",
+      "name": "原项目推进器单组件",
+      "revision": 3
+    },
+    {
+      "id": "e3146949d1fd46d1b89d6118d3cfee4f",
+      "name": "DSH-MCP-资料抽取验收",
+      "revision": 1
+    },
+    {
+      "id": "ea3a894c85e243edaab17500b65a0af7",
+      "name": "原项目行星减速箱单组件",
+      "revision": 2
+    }
+  ],
+  "mcpToolsDiscovered": 15,
+  "mcpReadProjectComponents": 1,
+  "dockerDataVolume": "dsh-satellite-geometry_project-data",
+  "dockerComposeWorkingDirectory": "/mnt/d/Codes/dsh-satellite-geometry",
+  "geometryAlgorithmsChanged": false,
+  "heavyGeometryCasesRerun": false,
+  "publicRemoteConfigured": false
+}

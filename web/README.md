@@ -5,7 +5,7 @@
 ## 本地构建
 
 ```powershell
-cd D:\AgentPrj\my_new_computer\work\dsh-satellite-geometry\web
+cd D:\Codes\dsh-satellite-geometry\web
 npm ci
 npm run build
 ```

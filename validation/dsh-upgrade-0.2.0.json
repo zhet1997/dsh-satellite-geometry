@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-02T02:41:39.117Z",
+  "dshVersion": "0.2.0-rc.2",
+  "pluginVersion": "0.2.0",
+  "workbenchLaunchTokenExchange": true,
+  "unauthenticatedRequestsRejected": true,
+  "crossOriginRejected": true,
+  "settingsReadWriteAndMcpReconnect": true,
+  "geometryHealth": "ok",
+  "projectCount": 8,
+  "selectionSnapshotCreated": true,
+  "pluginTestsPassed": 5,
+  "packageIndependentInstallPassed": true,
+  "browserSettingsSaveAndHealthPassed": true,
+  "browserSelectionToDraftPassed": true,
+  "coldRestartPassed": true,
+  "packageSha256": "29ecc888781b0f6376bbfdecefd26d1554d88fc09caffee1f199226b8f1c9d6e"
+}

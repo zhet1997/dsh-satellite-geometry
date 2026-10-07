@@ -1,5 +1,6 @@
 // Explicit native model integration check, not part of npm test. Read-only.
 import fs from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 const host = 'http://127.0.0.1:3081'
 const sessionId = 'satellite-selection-reference-20260929'
 const stateFile = new URL('../../validation/raw/selection-native-state.json', import.meta.url)
@@ -9,7 +10,7 @@ async function rpc(method, payload, channel = '/api') {
   const body = await r.json(); if (!body.result?.ok) throw new Error(JSON.stringify(body.result)); return body.result.value
 }
 if (process.argv.includes('--prompt')) {
-  await rpc('session.create', { sessionId, cwd: 'D:/AgentPrj/my_new_computer/work/dsh-satellite-geometry' })
+  await rpc('session.create', { sessionId, cwd: fileURLToPath(new URL('../../', import.meta.url)) })
   await rpc('session.rename', { sessionId, title: '几何选择短引用验收' })
   const context = await rpc('selection.snapshot', { sessionId, projectId: '4a11df37a4394074b88f32d11905272c', revision: 3, selection: [{ nodeId: 'N00003', name: 'Four_foot_device' }] }, '/satellite-geometry-rpc')
   await fs.writeFile(stateFile, JSON.stringify({ sessionId, ...context }, null, 2))
