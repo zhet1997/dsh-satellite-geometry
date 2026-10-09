@@ -109,6 +109,13 @@ class Restore(Revision):
     restorePose: bool = True
 
 
+class EquipmentEnvelopeRebuild(Revision):
+    planId: str
+    authorization: Literal["user_requested_equivalent_envelopes"]
+    thermalContacts: Literal["separately_defined"]
+    reason: str = Field(min_length=1, max_length=4000)
+
+
 class SourceReference(ApiModel):
     documentId: str
     quote: str = Field(min_length=1, max_length=4000)
@@ -283,6 +290,7 @@ def health():
 def capabilities():
     return {"apiVersion": 1, "sourceFormats": ["step", "stp"], "documentFormats": ["docx", "xlsx", "pdf", "txt", "md", "csv", "json"],
             "strategies": ["conservative", "box", "multibox"], "preserveOriginalPoseByDefault": True,
+            "equivalentEquipmentEnvelopes": {"available": True, "requiresExplicitUserChoice": True, "thermalContacts": "separately_defined", "movesComponents": False},
             "checks": ["original_step_solid_intersection", "candidate_envelope_intersection", "contact_proximity", "topology_readback"],
             "notYetChecked": ["cables", "bolt_mating", "whole_shell_containment", "thermal_conductance"],
             "layout": "explicit_source-verified_pose_candidates", "exports": ["step", "glb", "properties.json", "contacts.json", "zip"],
@@ -532,6 +540,20 @@ def apply_plan(project_id: str, plan_id: str, request: Simplification):
     if request.purpose == "thermal" and not request.preserveContacts:
         raise ValueError("热分析用途必须保留已识别关键接触几何")
     return submit(project, "apply_plan", {"request": request.model_dump(), "plan": plan})
+
+
+@app.post("/api/projects/{project_id}/equipment-envelopes")
+def rebuild_equipment_model(project_id: str, request: EquipmentEnvelopeRebuild):
+    project = ready_project(project_id, request.revision)
+    require_geometry(project)
+    plan = db.read_json(db.project_dir(project_id) / "plans" / f"{db.safe_id(request.planId)}.json")
+    db.check_revision(project, plan["revision"])
+    operations = plan["operations"]
+    if {op["componentId"] for op in operations} != {c["id"] for c in project["components"]}:
+        raise ValueError("等效包络方案必须覆盖全部组件")
+    if any(op["action"] not in {"preserve", "box"} for op in operations):
+        raise ValueError("等效包络方案仅支持 preserve/box")
+    return submit(project, "equipment_envelopes", {"request": request.model_dump(), "plan": plan})
 
 
 @app.post("/api/projects/{project_id}/components/{component_id}/pose")

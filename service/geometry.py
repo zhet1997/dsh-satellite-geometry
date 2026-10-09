@@ -60,8 +60,19 @@ def location_from_pose(pose):
 
 
 def bounds(shape):
-    box = shape.BoundingBox()
-    return [float(box.xmin), float(box.ymin), float(box.zmin), float(box.xmax), float(box.ymax), float(box.zmax)]
+    if len(shape.Faces()) <= 400:
+        box = shape.BoundingBox()
+        return [float(box.xmin), float(box.ymin), float(box.zmin), float(box.xmax), float(box.ymax), float(box.zmax)]
+    # A conservative BRep bound is sufficient for envelope containment and broad
+    # phase checks. AddOptimal runs expensive numerical extrema searches on Creo
+    # trimmed/transformed toroidal surfaces. Do not rely on preview triangulation.
+    from OCP.Bnd import Bnd_Box
+    from OCP.BRepBndLib import BRepBndLib
+    box = Bnd_Box()
+    BRepBndLib.Add_s(shape.wrapped, box, False)
+    if box.IsVoid():
+        raise ValueError("组件没有可计算包围盒的几何")
+    return [float(value) for value in box.Get()]
 
 
 def bounds_gap(a, b):
@@ -207,8 +218,14 @@ def import_step(project, path: Path, job_id: str):
     reader = STEPCAFControl_Reader()
     reader.SetNameMode(True)
     reader.SetColorMode(True)
+    # Working components do not consume XCAF presentation-layer labels. Creo
+    # exports with many named faces make ReadLayers repeatedly search the whole
+    # shape tree. Keep layers in the immutable source STEP, but omit their unused
+    # XCAF indexing; geometry, names, colours and occurrence transforms still load.
+    reader.SetLayerMode(False)
     if "RetDone" not in str(reader.ReadFile(str(path))):
         raise ValueError("无法读取 STEP 文件")
+    progress(job_id, 7, "建立 STEP 几何装配文档（名称、颜色及原始实例位姿）")
     document = TDocStd_Document(TCollection_ExtendedString("satellite"))
     if not reader.Transfer(document):
         raise ValueError("无法建立 STEP 装配文档")
@@ -301,6 +318,7 @@ def import_step(project, path: Path, job_id: str):
             prototypes[key] = prototype_id
             write_shape(local, root / "source" / "prototypes" / f"{prototype_id}.step")
         local_bounds = bounds(local)
+        world_bounds = bounds(shape)
         dimensions = [local_bounds[i + 3] - local_bounds[i] for i in range(3)]
         solid_count = len(local.Solids())
         shape_valid = bool(local.isValid())
@@ -309,14 +327,15 @@ def import_step(project, path: Path, job_id: str):
         component = {"id": node["id"], "name": node["name"], "parentId": node["parentId"],
                      "sourceNodeIds": leaves(node["id"]), "prototypeId": prototype_id,
                      "sourceFile": f"source/prototypes/{prototype_id}.step", "sourceHash": source_hash(root / "source" / "prototypes" / f"{prototype_id}.step"),
-                     "localBoundsMm": local_bounds, "boundsMm": bounds(shape), "dimensionsMm": dimensions,
-                     "centerMm": [(bounds(shape)[i] + bounds(shape)[i + 3]) / 2 for i in range(3)],
+                     "localBoundsMm": local_bounds, "boundsMm": world_bounds, "dimensionsMm": dimensions,
+                     "centerMm": [(world_bounds[i] + world_bounds[i + 3]) / 2 for i in range(3)],
                      "pose": copy.deepcopy(pose), "originalPose": copy.deepcopy(pose),
                      "strategy": "original", "preserved": True, "preservationReason": "导入时保留原始几何与装配位姿",
                      "volumeMm3": volume, "simplifiedVolumeMm3": volume, "faceCount": len(local.Faces()),
                      "solidCount": solid_count, "sourceTopologyValid": shape_valid,
                      "sourceValid": shape_valid and solid_count > 0 and volume > 0 and coverage["completeSolidFaces"],
                      "sourceGeometryCoverage": coverage,
+                     "boundsMethod": "OCCT_optimal_small_conservative_BRep_Add_over_400_faces",
                      "metadata": {}, "geometryQuality": "original"}
         node["componentId"] = component["id"]
         components.append(component)
@@ -328,6 +347,7 @@ def import_step(project, path: Path, job_id: str):
                            "importedAt": now(), "nodeCount": len(nodes), "componentCount": len(components),
                            "prototypeCount": len(prototypes), "instanceCount": len(components),
                            "selectionStrategy": selection_strategy})
+    project["source"]["boundsMethod"] = "OCCT_optimal_small_conservative_BRep_Add_over_400_faces"
     project["sourceTree"] = copy.deepcopy(nodes)
     original = {component["id"]: shape_map[component["id"]] for component in components}
     glb_path = root / "artifacts" / "original.glb"
@@ -850,7 +870,7 @@ def export_project(project, job_id):
     target.mkdir(parents=True, exist_ok=True)
     assembly = cq.Assembly(name="Satellite_simplified")
     local_shapes, shapes, topology_evidence = {}, {}, {}
-    invalid_source_ids = []
+    invalid_source_ids, invalid_preserved_ids = [], []
     for index, component in enumerate(project["components"]):
         progress(job_id, 2 + 10 * index / len(project["components"]), f"准备共享原型导出 {index + 1}/{len(project['components'])}：{component['name']}")
         relative = component.get("candidateFile") or component["sourceFile"]
@@ -870,6 +890,8 @@ def export_project(project, job_id):
         if not topology_evidence[relative]:
             if component["strategy"] != "original":
                 raise ValueError(f"简化候选 {component['id']} 出现拓扑缺陷，未发布输出")
+            invalid_preserved_ids.append(component["id"])
+        if component.get("sourceTopologyValid") is False:
             invalid_source_ids.append(component["id"])
     by_id = {component["id"]: component for component in project["components"]}
     tree = {node["id"]: node for node in project["tree"]}
@@ -924,11 +946,11 @@ def export_project(project, job_id):
     exported = read_shape(step_path)
     readback_valid = bool(exported.isValid())
     source_topology_valid = not invalid_source_ids
-    if not readback_valid and source_topology_valid:
+    if not readback_valid and (not invalid_preserved_ids or project.get("equipmentEnvelopeRebuild")):
         raise ValueError("有效源几何导出后出现新的拓扑检查失败，未发布输出")
     export_warnings = []
     if not source_topology_valid:
-        export_warnings.append("源模型已有拓扑缺陷；导出文件用于复核/修复，不能据此宣称工程验收通过")
+        export_warnings.append("原始输入已有拓扑缺陷，源证据完整保留；输出有效性按当前实体和STEP回读另行判断，不能据此宣称热工程验收通过")
     if not readback_valid:
         export_warnings.append("STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应")
     progress(job_id, 55, "STEP 可读取；源拓扑缺陷已记录，生成待复核产物" if not readback_valid else "STEP 回读检查完成，生成预览与属性/接触清单")
@@ -938,15 +960,21 @@ def export_project(project, job_id):
                         "components": project["components"], "sourceTree": project.get("sourceTree", project["tree"]),
                         "workingTree": project["tree"], "checks": project["checks"],
                         "envelopeRefinement": project.get("envelopeRefinement"),
+                        "equipmentEnvelopeRebuild": project.get("equipmentEnvelopeRebuild"),
                         "export": {"stepSha256": source_hash(step_path), "stepReadable": True, "stepReadbackValid": readback_valid,
                                    "sourceTopologyValid": source_topology_valid, "invalidSourceComponentIds": invalid_source_ids,
+                                   "invalidPreservedComponentIds": invalid_preserved_ids,
+                                   "outputFaceCount": len(exported.Faces()) if hasattr(exported, "Faces") else None,
+                                   "outputSolidCount": len(exported.Solids()) if hasattr(exported, "Solids") else None,
                                    "stepOccurrenceCount": len(occurrence_ids), "stepPrototypeCount": len(prototype_ids),
                                    "instanceStructureVerified": True, "exportedAt": now(), "warnings": export_warnings,
-                                   "status": "valid" if readback_valid and source_topology_valid else "source_and_output_invalid_review_required" if not readback_valid else "source_defects_review_required",
+                                   "status": "equivalent_geometry_valid_thermal_network_pending" if readback_valid and project.get("equipmentEnvelopeRebuild") else "valid" if readback_valid and source_topology_valid else "source_and_output_invalid_review_required" if not readback_valid else "source_defects_review_required",
                                    "acceptanceIsSeparate": True}}
     atomic_json(target / "properties.json", attribute_report)
     atomic_json(target / "contacts.json", {"revision": revision, "contacts": project["checks"].get("contacts", []),
                                           "complete": project["checks"].get("sourceComplete", False),
+                                          "thermalContacts": project["checks"].get("thermalContacts", "source_geometry_candidates"),
+                                          "potentialEnvelopePairs": project["checks"].get("potentialEnvelopePairs", []),
                                           "warnings": project["checks"].get("warnings", [])})
     project["artifacts"].update(step=artifact_url(project["id"], f"{relative_root}/simplified.step"),
                                  simplifiedGlb=artifact_url(project["id"], f"{relative_root}/simplified.glb"),

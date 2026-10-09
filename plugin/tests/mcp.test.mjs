@@ -21,7 +21,7 @@ test('real stdio MCP discovers tools and preserves revision/source payloads acro
   try {
     await client.connect(transport)
     const listing = await client.listTools()
-    assert.equal(listing.tools.length, 15)
+    assert.equal(listing.tools.length, 16)
     assert.ok(listing.tools.some(t => t.name === 'satellite_read_document'))
     const args = { projectId: 'p1', revision: 7, components: [{ id: 'c1', powerW: 12.5, sources: [{ documentId: 'd1', quote: '额定功耗 12.5 W', field: 'powerW' }] }] }
     const result = await client.callTool({ name: 'satellite_submit_metadata', arguments: args })
@@ -43,6 +43,10 @@ test('real stdio MCP discovers tools and preserves revision/source payloads acro
     assert.equal(value.filtered, true)
     assert.deepEqual(value.components, [{ id: 'c1', metadata: { powerW: 12.5 } }])
     assert.deepEqual(value.lastExport, { stepReadable: true, stepReadbackValid: false, sourceTopologyValid: false })
+    await client.callTool({ name: 'satellite_rebuild_equipment_envelopes', arguments: { projectId: 'p1', revision: 8, planId: 'plan8', authorization: 'user_requested_equivalent_envelopes', thermalContacts: 'separately_defined', reason: 'explicit equivalent geometry choice' } })
+    assert.equal(received.at(-1).url, '/api/projects/p1/equipment-envelopes')
+    assert.equal(received.at(-1).body.planId, 'plan8')
+    assert.equal(received.at(-1).body.thermalContacts, 'separately_defined')
   } finally { await client.close(); await new Promise(resolve => service.close(resolve)) }
 })
 

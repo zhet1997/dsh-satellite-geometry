@@ -18,3 +18,7 @@ description: 在卫星几何工作台中从 STEP 和相关资料整理装配、�
 9. export_project 后读取任务结果及project.lastExport，交付实际存在的 STEP、可视模型和记录。stepReadable只说明文件可读取，stepReadbackValid才表示回读拓扑有效；sourceTopologyValid与invalidSourceComponentIds说明源模型拓扑缺陷，warnings/status须如实报告。可读但拓扑无效的文件仅供复核与修复，不可称为已验收下游输入；缺失检查记录保持未知。即使拓扑有效也不等于热、装配、约束等工程检查全部通过。总结哪些组件发生几何简化、哪些原样保留、位置是否改变、资料来源、已验证内容和仍未知内容。
 
 大型 STEP/GLB 由工作台文件通道传输，MCP 不承担文件二进制传输。不要要求模型把 STEP 编码进对话。
+
+## 明确选择设备等效包络时
+
+用户明确要求按源外形重建设备包络，且热接触在后续热网络中另行定义时，使用 `satellite_rebuild_equipment_envelopes`，不把这类任务当作保留真实接触的 `apply_plan`。先 `create_plan` 逐一覆盖全部工作组件，仅用 preserve/box，结构/太阳阵等需要保留的对象写 preserve。调用时指定 `authorization:user_requested_equivalent_envelopes`、`thermalContacts:separately_defined` 并记录用户要求。该作业按源CAD局部包围盒重建闭合正体积实体，保持原始位姿，分别保存源缺陷与输出有效性。热网络状态必须 pending，AABB重叠仅为潜在包络关系，不认证真实干涉/热接触，也不将原输入缺陷伪称为已修复。检查最终 STEP 回读、实例完整性、尺寸和位姿后交付，并保存原始资料和源CAD依据。

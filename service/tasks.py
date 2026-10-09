@@ -27,6 +27,11 @@ def execute(kind: str, project: dict, payload: dict, job_id: str) -> dict:
     if kind == "check":
         check_geometry(project, job_id)
         return project
+    if kind == "equipment_envelopes":
+        from service.app import EquipmentEnvelopeRebuild
+        from service.equipment_envelopes import rebuild_equipment_envelopes
+        return rebuild_equipment_envelopes(project, EquipmentEnvelopeRebuild.model_validate(payload["request"]),
+                                          payload["plan"], job_id)
     if kind == "export":
         return export_project(project, job_id)
     component = next(c for c in project["components"] if c["id"] == payload["componentId"])
