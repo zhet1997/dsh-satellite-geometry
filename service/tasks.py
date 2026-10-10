@@ -17,8 +17,21 @@ def execute(kind: str, project: dict, payload: dict, job_id: str) -> dict:
         result["source"]["name"] = payload["originalName"]
         return result
     if kind in {"simplify", "apply_plan"}:
+        previous = {c["id"]: (c.get("strategy"), c.get("candidateFile")) for c in project["components"]}
         request = Simplification.model_validate(payload["request"])
         result = simplify(project, request, job_id, payload.get("plan"))
+        from service.modeling import default_recipe, fingerprint, contact_candidates, invalidate_contacts
+        ids = set(request.componentIds or [c["id"] for c in result["components"]])
+        ids.update(c["id"] for c in result["components"] if previous[c["id"]] != (c.get("strategy"), c.get("candidateFile")))
+        for c in result["components"]:
+            if c["id"] in ids:
+                c["recipe"] = default_recipe(c)
+                c["recipeFingerprint"] = fingerprint(c["recipe"])
+                c.pop("outputRepresentation", None)
+                c.pop("installationRegions", None)
+                c.pop("outputGeometry", None)
+        invalidate_contacts(result, ids, "关联单机已重新简化，接触区域需复核")
+        contact_candidates(result, job_id)
         if kind == "apply_plan":
             for item in result["plans"]:
                 if item["id"] == payload["plan"]["id"]:
@@ -26,12 +39,26 @@ def execute(kind: str, project: dict, payload: dict, job_id: str) -> dict:
         return result
     if kind == "check":
         check_geometry(project, job_id)
+        from service.modeling import contact_candidates
+        contact_candidates(project, job_id)
         return project
+    if kind == "recipes":
+        from service.modeling import rebuild
+        return rebuild(project, payload["changes"], job_id, payload.get("context"))
     if kind == "equipment_envelopes":
         from service.app import EquipmentEnvelopeRebuild
         from service.equipment_envelopes import rebuild_equipment_envelopes
-        return rebuild_equipment_envelopes(project, EquipmentEnvelopeRebuild.model_validate(payload["request"]),
-                                          payload["plan"], job_id)
+        result = rebuild_equipment_envelopes(project, EquipmentEnvelopeRebuild.model_validate(payload["request"]),
+                                            payload["plan"], job_id)
+        from service.modeling import default_recipe, fingerprint, invalidate_contacts
+        for c in result["components"]:
+            c["recipe"] = default_recipe(c)
+            c["recipeFingerprint"] = fingerprint(c["recipe"])
+            c.pop("installationRegions", None)
+            c.pop("outputRepresentation", None)
+            c.pop("outputGeometry", None)
+        invalidate_contacts(result, [c["id"] for c in result["components"]], "关联单机已重建等效包络，接触区域需复核")
+        return result
     if kind == "export":
         return export_project(project, job_id)
     component = next(c for c in project["components"] if c["id"] == payload["componentId"])
@@ -41,6 +68,12 @@ def execute(kind: str, project: dict, payload: dict, job_id: str) -> dict:
             component.pop("candidateFile", None)
             component.update(strategy="original", preserved=True, preservationReason="用户要求保留原几何",
                              simplifiedVolumeMm3=component["volumeMm3"], geometryQuality="original")
+            from service.modeling import default_recipe, fingerprint
+            component["recipe"] = default_recipe(component)
+            component["recipeFingerprint"] = fingerprint(component["recipe"])
+            component.pop("outputRepresentation", None)
+            component.pop("installationRegions", None)
+            component.pop("outputGeometry", None)
         if request["restorePose"]:
             component["pose"] = copy.deepcopy(component["originalPose"])
         check_geometry(project, job_id, progress_range=(3, 75))
@@ -84,6 +117,16 @@ def execute(kind: str, project: dict, payload: dict, job_id: str) -> dict:
         project["checks"]["thermalStatus"] = "needs_review"
     else:
         raise ValueError(f"不支持的任务：{kind}")
+    from service.modeling import invalidate_contacts, contact_candidates, build_recipe, selected_faces, exposed_region_faces, face_record
+    if kind == "pose" or request.get("restorePose"):
+        if component.get("installationRegions"):
+            local, parts, _ = build_recipe(project, component, component["recipe"])
+            for region in component["installationRegions"]:
+                exposed = exposed_region_faces(selected_faces(parts[region["partId"]], region["selector"]), local)
+                region["faces"] = [{**face_record(face, f"{region['id']}:{i}", component["pose"]),
+                                     "outputFaceIndex": boundary} for i, (face, boundary) in enumerate(exposed)]
+    invalidate_contacts(project, [component["id"]], "关联单机几何或装配位姿已改变，接触需复核")
+    contact_candidates(project, job_id)
     shapes = world_shapes(project)
     component["boundsMm"] = bounds(shapes[component["id"]])
     component["centerMm"] = [(component["boundsMm"][i] + component["boundsMm"][i + 3]) / 2 for i in range(3)]

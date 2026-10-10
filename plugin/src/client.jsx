@@ -23,11 +23,27 @@ function SelectionDock({ sessionId, useInput, inputActions, rpc }) {
     const receive = async event => {
       if (event.origin !== location.origin || event.source !== window.parent || window.parent === window) return
       const d = event.data
-      if (!d || !['satellite-geometry:selection', 'satellite-geometry:ask-selection'].includes(d.type)) return
+      if (!d || !['satellite-geometry:selection', 'satellite-geometry:ask-selection', 'satellite-geometry:run-workflow', 'satellite-geometry:bind-skill'].includes(d.type)) return
+      if (d.type === 'satellite-geometry:bind-skill' || d.type === 'satellite-geometry:run-workflow') {
+        try {
+          const r=await rpc.call(channel,rpcMethod('workflow.bind'),{sessionId,projectId:d.projectId,revision:d.revision,selection:d.selection||[],...(d.skillId?{skillId:d.skillId}:{})})
+          if(!r.ok)throw new Error(r.error?.message||'会话绑定失败')
+          if(d.type==='satellite-geometry:run-workflow'){
+            const result=await rpc.call(channel,'session/prompt',{args:{request:{requestId:crypto.randomUUID(),sessionId,mode:'queue',content:[{type:'text',text:`当前卫星工程 ${d.projectId}，固定Skill指纹 ${r.value.skillFingerprint}。先调用satellite_workflow_context，再按已授权任务自主处理：\n${d.prompt}`}],clientTimeZone:'Asia/Shanghai'}}})
+            if(!result.ok)throw new Error(result.error?.message||'任务未送入会话')
+            report(true,'建模任务已送入当前 DSH 会话。')
+          }else report(true,`已绑定建模 Skill ${r.value.skillFingerprint.slice(0,12)}`)
+        }catch(e){report(false,e.message)}
+        return
+      }
       const asking = d.type === 'satellite-geometry:ask-selection'
       const problem = selectionProblem(d, asking)
       if (problem) { setSelection(null); if (asking) report(false, problem); return }
       setSelection(d)
+      if(!asking){
+        try{const r=await rpc.call(channel,rpcMethod('workflow.select'),{sessionId,projectId:d.projectId,revision:d.revision,selection:d.selection});if(!r.ok)setNotice(r.error?.message||'上下文同步失败')}
+        catch(e){if(active)setNotice(e.message)}
+      }
       if (d.type === 'satellite-geometry:ask-selection') {
         setNotice('正在带入选择…')
         try {
@@ -38,7 +54,7 @@ function SelectionDock({ sessionId, useInput, inputActions, rpc }) {
           const count = result.value.componentCount ?? names.length
           const displayNames = names.slice(0, 4).join('、') + (count > 4 ? `等 ${count} 个组件` : '')
           const draft = live.current.input.draft || ''
-          live.current.inputActions.setDraft(`${draft}${draft ? '\n\n' : ''}所选组件：${displayNames}（几何引用 ${result.value.ref}）\n${d.prompt || '请分析所选组件；默认保留原位置，说明真实问题及依据，并给出简化建议。'}`)
+          live.current.inputActions.setDraft(`${draft}${draft ? '\n\n' : ''}所选组件：${displayNames}（几何引用 ${result.value.ref}）\n当前工程 ${d.projectId}，请先读取 satellite_workflow_context 的固定 Skill 与真实文件/方案上下文。\n${d.prompt || '请分析所选组件；默认保留原位置，说明依据，修改当前单机方案。'}`)
           report(true, `已将 ${count} 个组件带入草稿，请编辑问题后发送。`)
         } catch (error) { if (active) report(false, error.message) }
       }

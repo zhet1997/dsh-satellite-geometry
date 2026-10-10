@@ -1,4 +1,13 @@
-export type Strategy = 'original' | 'conservative' | 'box' | 'multibox';
+export type Strategy = 'original' | 'conservative' | 'box' | 'multibox' | 'recipe';
+export type RecipePart = { id: string; name: string; kind: 'box' | 'cylinder' | 'source'; centerMm: number[]; sizeMm?: number[] | null; radiusMm?: number | null; heightMm?: number | null; axis?: number[] };
+export type Thermal = { thicknessMm?: number | null; material?: string | null; massKg?: number | null; specificHeatJPerKgK?: number | null; conductivityWPerMK?: number | null; powerW?: number | null };
+export type RecipeRegion = { id: string; name: string; partId: string; selector: 'xmin' | 'xmax' | 'ymin' | 'ymax' | 'zmin' | 'zmax' | 'lateral' | 'all' };
+export type Recipe = { schemaVersion: 1; representation: 'source' | 'solid' | 'surface_shell'; parts: RecipePart[]; thermal: Thermal; regions: RecipeRegion[]; dimensionBasis: string; notes: string; legacyCandidateFile?: string | null; sources?: unknown[] };
+export type RegionFace = { id: string; centerMm: number[]; normal?: number[] | null; boundsMm: number[]; verticesMm: number[][]; triangles: number[][]; areaMm2: number; geometryType: string };
+export type InstallationRegion = RecipeRegion & { mappingStatus: string; faces: RegionFace[]; recipeFingerprint: string };
+export type ThermalContact = { id: string; a: { componentId: string; regionId: string | null }; b: { componentId: string; regionId: string | null }; status: 'candidate' | 'confirmed' | 'needs_review' | 'excluded'; origin: 'manual' | 'document' | 'geometry'; areaMm2: number | null; conductanceWPerK: number | null; evidence: string; mappingStatus?: string; patches?: RegionFace[]; unknownFields?: string[]; sources?: unknown[] };
+export type WorkflowBinding = { sessionId: string; projectId: string; skillId: string; skillFingerprint: string; boundAt: string; loadedAt: string | null };
+export type SkillVersion = { id: string; label: string; fingerprint: string; content?: string; resources?: Record<string, string>; createdAt: string; immutable: boolean };
 export type Purpose = 'thermal' | 'assembly' | 'envelope' | 'detail';
 export type Vec3 = [number, number, number];
 export type ComponentMetadata = {
@@ -13,6 +22,12 @@ export type CadComponent = {
   strategy: Strategy; preserved: boolean; preservationReason?: string;
   volumeMm3?: number; simplifiedVolumeMm3?: number; faceCount?: number;
   metadata: ComponentMetadata;
+  sourceName?: string; displayName?: string; engineeringGroup?: string; nameStatus?: string; localBoundsMm?: number[];
+  identityEvidence?: { basis: string; sources?: unknown[] };
+  recipe?: Recipe; recipeFingerprint?: string;
+  recipeCopies?: { id: string; name: string; at: string; fingerprint: string }[];
+  installationRegions?: InstallationRegion[];
+  outputGeometry?: { representation: string; valid: boolean; passed: boolean; faceCount: number; solidCount: number; areaMm2: number; volumeMm3: number };
 };
 export type TreeNode = {
   id: string; name: string; parentId: string | null; children: string[];
@@ -48,6 +63,8 @@ export type Project = {
   lastExport?: ExportRecord;
   documents?: ProjectDocument[];
   notes?: string; createdAt?: string; updatedAt?: string;
+  thermalContacts?: ThermalContact[]; contactDiscovery?: { status: string };
+  workflowBindings?: Record<string, WorkflowBinding>;
 };
 export type ProjectSummary = Pick<Project, 'id' | 'name' | 'revision' | 'status'>;
 export type Job = {

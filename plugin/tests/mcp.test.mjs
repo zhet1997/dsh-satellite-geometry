@@ -21,7 +21,7 @@ test('real stdio MCP discovers tools and preserves revision/source payloads acro
   try {
     await client.connect(transport)
     const listing = await client.listTools()
-    assert.equal(listing.tools.length, 16)
+    assert.equal(listing.tools.length, 25)
     assert.ok(listing.tools.some(t => t.name === 'satellite_read_document'))
     const args = { projectId: 'p1', revision: 7, components: [{ id: 'c1', powerW: 12.5, sources: [{ documentId: 'd1', quote: '额定功耗 12.5 W', field: 'powerW' }] }] }
     const result = await client.callTool({ name: 'satellite_submit_metadata', arguments: args })
@@ -47,6 +47,14 @@ test('real stdio MCP discovers tools and preserves revision/source payloads acro
     assert.equal(received.at(-1).url, '/api/projects/p1/equipment-envelopes')
     assert.equal(received.at(-1).body.planId, 'plan8')
     assert.equal(received.at(-1).body.thermalContacts, 'separately_defined')
+    const recipe = { representation:'surface_shell',parts:[{id:'body',name:'壳体',kind:'box',centerMm:[0,0,0],sizeMm:[10,8,6]}],thermal:{thicknessMm:.5,massKg:null},dimensionBasis:'工程师指定'}
+    await client.callTool({name:'satellite_rebuild_recipes',arguments:{projectId:'p1',revision:8,changes:[{componentId:'c1',recipe,reason:'改为面壳'}],context:{sessionId:'session-a',feedback:'热容未知'}}})
+    assert.equal(received.at(-1).url,'/api/projects/p1/recipes/rebuild')
+    assert.deepEqual(received.at(-1).body.changes[0].recipe,recipe)
+    assert.equal(received.at(-1).body.context.sessionId,'session-a')
+    await client.callTool({name:'satellite_load_recipe_copy',arguments:{projectId:'p1',revision:8,componentId:'c1',copyId:'copy1'}})
+    assert.equal(received.at(-1).url,'/api/projects/p1/components/c1/recipe-copies/copy1/load')
+    assert.deepEqual(received.at(-1).body,{revision:8})
   } finally { await client.close(); await new Promise(resolve => service.close(resolve)) }
 })
 

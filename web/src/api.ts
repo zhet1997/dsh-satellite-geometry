@@ -1,4 +1,4 @@
-import type { ComponentMetadata, Job, Project, ProjectDocument, ProjectSummary, Strategy } from './types';
+import type { ComponentMetadata, Job, Project, ProjectDocument, ProjectSummary, Strategy, Recipe, SkillVersion, ThermalContact, WorkflowBinding } from './types';
 
 export class ApiError extends Error {
   constructor(message: string, public status: number) { super(message); }
@@ -55,6 +55,14 @@ export function createClient(apiBase: string) {
     semantics: (id: string, revision: number, operation: { action: 'rename' | 'group' | 'ungroup'; componentIds?: string[]; groupId?: string; name?: string; reason: string }) => post<Project>(`${projectPath(id)}/semantics`, { revision, operations: [operation] }),
     job: (id: string) => request<Job>(`/jobs/${encodeURIComponent(id)}`),
     cancelJob: (id: string) => post<Job>(`/jobs/${encodeURIComponent(id)}/cancel`, {}),
+    rebuildRecipe: (id: string, revision: number, cid: string, recipe: Recipe, reason: string, sessionId?: string) => post<{ jobId: string }>(`${projectPath(id)}/recipes/rebuild`, { revision, changes: [{ componentId: cid, recipe, reason }], ...(sessionId ? { context: { sessionId, feedback: reason } } : {}) }),
+    saveRecipeCopy: (id: string, revision: number, cid: string, name: string, sessionId?: string) => post<unknown>(`${projectPath(id)}/components/${encodeURIComponent(cid)}/recipe-copies`, { revision, name, ...(sessionId ? { context: { sessionId, feedback: `保存方案副本：${name}` } } : {}) }),
+    loadRecipeCopy: (id: string, revision: number, cid: string, copyId: string, sessionId?: string) => post<{ jobId: string }>(`${projectPath(id)}/components/${encodeURIComponent(cid)}/recipe-copies/${encodeURIComponent(copyId)}/load`, { revision, ...(sessionId ? { context: { sessionId, feedback: '载入保存的单机方案副本' } } : {}) }),
+    updateContacts: (id: string, revision: number, contacts: ThermalContact[]) => post<Project>(`${projectPath(id)}/thermal-contacts`, { revision, contacts: contacts.map(c => ({ id: c.id, a: c.a, b: c.b, status: c.status, origin: c.origin, areaMm2: c.areaMm2, conductanceWPerK: c.conductanceWPerK, evidence: c.evidence, sources: c.sources ?? [] })) }),
+    skills: () => request<{ skills: SkillVersion[]; defaultSkillId: string }>('/skills'),
+    skill: (id: string) => request<SkillVersion>(`/skills/${encodeURIComponent(id)}`),
+    importSkill: (label: string, content: string, resources: Record<string, string> = {}) => post<SkillVersion>('/skills', { label, content, resources }),
+    bindWorkflow: (id: string, revision: number, sessionId: string, skillId: string) => post<WorkflowBinding>(`${projectPath(id)}/workflow-bindings`, { revision, sessionId, skillId }),
     artifactUrl: (path?: string) => {
       if (!path) return undefined;
       if (/^https?:\/\//.test(path)) return path;

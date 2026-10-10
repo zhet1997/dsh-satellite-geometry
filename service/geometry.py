@@ -153,6 +153,17 @@ def read_shape(path):
     return _read_shape_cached(str(path), stat.st_mtime_ns, stat.st_size, _SHAPE_WRITE_GENERATIONS.get(str(path), 0))
 
 
+def read_step_fresh(path):
+    """Verify the serialized STEP, independently of any pre-export BRep cache."""
+    path = Path(path).resolve()
+    shape = cq_module().importers.importStep(str(path)).val()
+    if shape is None or shape.wrapped.IsNull():
+        raise ValueError(f"STEP 几何为空：{path.name}")
+    invalidate_shape_cache(path)
+    save_brep_cache(path, shape)
+    return shape
+
+
 def invalidate_shape_cache(path):
     # Some filesystems can give rapid equal-size rewrites the same timestamp.
     # Explicit writes must still invalidate an in-process cached shape.
@@ -498,13 +509,15 @@ def check_geometry(project, job_id, *, tolerance=0.1, progress_range=(2, 90), so
     candidates = []
     for component in project["components"]:
         candidate = dict(component)
-        # Every supported candidate is contained within the source-local AABB.
-        # Transforming its eight corners gives a conservative world broad phase
-        # without re-traversing all BRep faces to calculate another tight AABB.
+        # Recipe candidates may extend beyond source dimensions. The broad
+        # phase must cover both source and rebuilt geometry at the current pose.
         local = component["localBoundsMm"]
         corners = np.array([[local[x], local[y], local[z]] for x in (0, 3) for y in (1, 4) for z in (2, 5)])
         transformed = corners @ np.asarray(component["pose"]["rotation"]).T + np.asarray(component["pose"]["translationMm"])
         candidate["boundsMm"] = (transformed.min(axis=0) - 1e-5).tolist() + (transformed.max(axis=0) + 1e-5).tolist()
+        if component.get("strategy") == "recipe":
+            actual = bounds(candidate_shapes[component["id"]])
+            candidate["boundsMm"] = [min(candidate["boundsMm"][i], actual[i]) for i in range(3)] + [max(candidate["boundsMm"][i], actual[i]) for i in range(3, 6)]
         candidates.append(candidate)
     pairs = list(broad_pairs(candidates, tolerance))
     # Source contacts repeat across simplification and metadata revisions. Cache
@@ -521,7 +534,7 @@ def check_geometry(project, job_id, *, tolerance=0.1, progress_range=(2, 90), so
     kernel_version = getattr(OCP, "__version__", "unknown")
     source_cache_hits, new_cached_pairs = 0, 0
     maximum = int(os.environ.get("SATCAD_MAX_EXACT_PAIRS", "1500"))
-    source_collisions, envelope_collisions, false_positives, contacts, errors = [], [], [], [], []
+    source_collisions, envelope_collisions, false_positives, contacts, errors, surface_pairs = [], [], [], [], [], []
     uncertain = {component["id"] for component in project["components"] if not component["sourceValid"]}
     total = len(pairs)
     evaluated_pairs, completed_source_pairs = 0, 0
@@ -578,6 +591,10 @@ def check_geometry(project, job_id, *, tolerance=0.1, progress_range=(2, 90), so
                                  "source": "immutable_source_step_at_current_pose"})
             same_geometry = left["strategy"] == "original" and right["strategy"] == "original"
             envelope = real if same_geometry or source_only else calculate(candidate_shapes[ids[0]], candidate_shapes[ids[1]])
+            if not source_only and any(c.get("outputRepresentation") == "surface_shell" for c in (left, right)):
+                surface_pairs.append({"componentIds": ids, **envelope,
+                                      "volumeInterferenceApplicable": False,
+                                      "scope": "surface_distance_and_overlap_only_not_solid_penetration"})
             evaluated_pairs += 1
             if envelope["status"] == "interference":
                 envelope_entry = {"componentIds": ids, **envelope,
@@ -599,6 +616,7 @@ def check_geometry(project, job_id, *, tolerance=0.1, progress_range=(2, 90), so
                        (c.get("metadata", {}).get("thermalCritical") or any(c["id"] in p["componentIds"] for p in contacts))]
     checks = {"checkedAt": now(), "sourceCollisions": source_collisions,
               "envelopeCollisions": envelope_collisions, "falsePositivePairs": false_positives,
+              "surfacePairs": surface_pairs, "surfacePenetrationCertified": False if surface_pairs else None,
               "contacts": contacts, "errors": errors, "uncertainComponentIds": sorted(uncertain),
               "sourceComplete": complete, "envelopeComplete": complete and not source_only,
               "evaluatedPairCount": evaluated_pairs, "completedSourcePairCount": completed_source_pairs, "candidatePairCount": total,
@@ -614,6 +632,9 @@ def check_geometry(project, job_id, *, tolerance=0.1, progress_range=(2, 90), so
               "warnings": ["接触识别来自几何距离；热接触导通、材料和紧固关系需要资料确认", "装配检查不包含电缆、孔位配合、安装顺序和全壳体包含性"]}
     if source_only:
         checks["envelopeComplete"] = False
+    if surface_pairs:
+        checks["thermalStatus"] = "needs_review" if complete else "unknown"
+        checks["warnings"].append("面壳检查为距离/交叠检查，零实体体积不能证明壳体无穿透；须复核安装区域")
     project["checks"] = checks
     return checks
 
@@ -863,6 +884,8 @@ def write_glb(project, shapes, path, job_id, progress_range=(85, 98)):
 
 
 def export_project(project, job_id):
+    from service.modeling import ensure_workbench, geometry_evidence
+    ensure_workbench(project)
     cq = cq_module()
     revision = project["revision"]
     relative_root = f"r{revision}"
@@ -877,6 +900,10 @@ def export_project(project, job_id):
         if relative not in local_shapes:
             local_shapes[relative] = read_shape(project_dir(project["id"]) / relative)
         local = local_shapes[relative]
+        if component.get("strategy") == "recipe":
+            evidence = geometry_evidence(local, component["recipe"]["representation"])
+            if component["recipe"]["representation"] != "source" and not evidence["passed"]:
+                raise ValueError(f"单机 {component['id']} 表示类型检查失败")
         shapes[component["id"]] = shape_transform(local, component["pose"])
         if relative not in topology_evidence:
             if component["strategy"] == "original" and "sourceTopologyValid" in component:
@@ -943,11 +970,14 @@ def export_project(project, job_id):
     # A readable file and valid topology are different claims. Existing invalid
     # source parts may be exported for repair/review, with their defect retained
     # explicitly. A new failure from fully valid inputs remains a failed export.
-    exported = read_shape(step_path)
+    exported = read_step_fresh(step_path)
     readback_valid = bool(exported.isValid())
     source_topology_valid = not invalid_source_ids
     if not readback_valid and (not invalid_preserved_ids or project.get("equipmentEnvelopeRebuild")):
         raise ValueError("有效源几何导出后出现新的拓扑检查失败，未发布输出")
+    expected_solids = sum(len(local_shapes[c.get("candidateFile") or c["sourceFile"]].Solids()) for c in project["components"])
+    if len(exported.Solids()) != expected_solids:
+        raise ValueError("STEP 回读实体数量发生变化，面壳/实体表示未保持")
     export_warnings = []
     if not source_topology_valid:
         export_warnings.append("原始输入已有拓扑缺陷，源证据完整保留；输出有效性按当前实体和STEP回读另行判断，不能据此宣称热工程验收通过")
@@ -955,10 +985,12 @@ def export_project(project, job_id):
         export_warnings.append("STEP 可读取，但回读拓扑检查未通过；没有认证所有源缺陷与输出缺陷一一对应")
     progress(job_id, 55, "STEP 可读取；源拓扑缺陷已记录，生成待复核产物" if not readback_valid else "STEP 回读检查完成，生成预览与属性/接触清单")
     write_glb(project, shapes, target / "simplified.glb", job_id, progress_range=(57, 86))
-    attribute_report = {"schemaVersion": 1, "projectId": project["id"], "revision": revision,
+    attribute_report = {"schemaVersion": 2, "projectId": project["id"], "revision": revision,
                         "source": project["source"], "units": "mm", "coordinateSystem": project["coordinateSystem"],
                         "components": project["components"], "sourceTree": project.get("sourceTree", project["tree"]),
                         "workingTree": project["tree"], "checks": project["checks"],
+                        "workflowBindings": project.get("workflowBindings", {}), "feedbackRecords": project.get("feedbackRecords", []),
+                        "geometryVolumeIsPhysicalMassProxy": False,
                         "envelopeRefinement": project.get("envelopeRefinement"),
                         "equipmentEnvelopeRebuild": project.get("equipmentEnvelopeRebuild"),
                         "export": {"stepSha256": source_hash(step_path), "stepReadable": True, "stepReadbackValid": readback_valid,
@@ -968,22 +1000,32 @@ def export_project(project, job_id):
                                    "outputSolidCount": len(exported.Solids()) if hasattr(exported, "Solids") else None,
                                    "stepOccurrenceCount": len(occurrence_ids), "stepPrototypeCount": len(prototype_ids),
                                    "instanceStructureVerified": True, "exportedAt": now(), "warnings": export_warnings,
+                                   "representationReadbackVerified": True,
                                    "status": "equivalent_geometry_valid_thermal_network_pending" if readback_valid and project.get("equipmentEnvelopeRebuild") else "valid" if readback_valid and source_topology_valid else "source_and_output_invalid_review_required" if not readback_valid else "source_defects_review_required",
                                    "acceptanceIsSeparate": True}}
     atomic_json(target / "properties.json", attribute_report)
-    atomic_json(target / "contacts.json", {"revision": revision, "contacts": project["checks"].get("contacts", []),
-                                          "complete": project["checks"].get("sourceComplete", False),
+    atomic_json(target / "contacts.json", {"schemaVersion": 2, "revision": revision, "contacts": project["thermalContacts"],
+                                          "sourceGeometricCandidates": project["checks"].get("contacts", []),
+                                          "complete": project.get("contactDiscovery", {}).get("status") == "completed",
                                           "thermalContacts": project["checks"].get("thermalContacts", "source_geometry_candidates"),
                                           "potentialEnvelopePairs": project["checks"].get("potentialEnvelopePairs", []),
                                           "warnings": project["checks"].get("warnings", [])})
+    atomic_json(target / "recipes.json", {"schemaVersion": 1, "revision": revision,
+        "components": [{"id": c["id"], "displayName": c["displayName"], "recipe": c["recipe"],
+                        "fingerprint": c["recipeFingerprint"], "pose": c["pose"],
+                        "installationRegions": c.get("installationRegions", [])} for c in project["components"]]})
+    from service.workbench import session_records
+    atomic_json(target / "feedback.json", {"revision": revision, "autoSkillUpdate": False,
+                                          "changes": project["feedbackRecords"], "sessionRecords": session_records(project["id"])})
     project["artifacts"].update(step=artifact_url(project["id"], f"{relative_root}/simplified.step"),
                                  simplifiedGlb=artifact_url(project["id"], f"{relative_root}/simplified.glb"),
                                  report=artifact_url(project["id"], f"{relative_root}/properties.json"),
                                  contacts=artifact_url(project["id"], f"{relative_root}/contacts.json"))
+    project["artifacts"]["recipes"] = artifact_url(project["id"], f"{relative_root}/recipes.json")
     import zipfile
     archive = target / "satellite-package.zip"
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
-        for name in ("simplified.step", "simplified.glb", "properties.json", "contacts.json"):
+        for name in ("simplified.step", "simplified.glb", "properties.json", "contacts.json", "recipes.json", "feedback.json"):
             bundle.write(target / name, name)
     project["artifacts"]["bundle"] = artifact_url(project["id"], f"{relative_root}/satellite-package.zip")
     project["lastExport"] = attribute_report["export"]

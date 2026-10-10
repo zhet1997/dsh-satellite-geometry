@@ -1,15 +1,16 @@
 import * as THREE from 'three';
 
 /** Engineering display treatment only; source geometry and CAD materials stay intact. */
-export function prepareCadMesh(mesh: THREE.Mesh) {
+export function prepareCadMesh(mesh: THREE.Mesh, componentId: string) {
   if (!mesh.geometry.getAttribute('normal')) mesh.geometry.computeVertexNormals();
   const originals = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
   const materials = originals.map((original) => {
     const material = original instanceof THREE.MeshStandardMaterial
       ? original.clone()
       : new THREE.MeshStandardMaterial({ color: 0x7292a5 });
-    // GLB colours are linear. Keep solid engineering surfaces distinct from the pale canvas.
-    material.color.multiplyScalar(0.62);
+    let hash = 2166136261;
+    for (const character of componentId) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
+    material.color.setHSL((hash >>> 0) % 360 / 360, .48 + ((hash >>> 8) % 20) / 100, .49 + ((hash >>> 16) % 16) / 100);
     material.metalness = 0.05;
     material.roughness = 0.76;
     material.transparent = false;
@@ -31,8 +32,7 @@ export function highlightCadMesh(mesh: THREE.Mesh, selected: boolean, wireframe:
     if (!(material instanceof THREE.MeshStandardMaterial)) continue;
     const base = material.userData.cadBaseColor as THREE.Color | undefined;
     if (base) material.color.copy(base);
-    if (selected) material.color.lerp(new THREE.Color(0x168360), 0.65);
-    material.emissive.set(selected ? 0x0b4936 : 0x000000);
+    material.emissive.set(selected ? 0x304252 : 0x000000);
     material.emissiveIntensity = selected ? 0.08 : 0;
     material.wireframe = wireframe;
     material.transparent = false;

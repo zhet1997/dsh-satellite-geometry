@@ -29,6 +29,30 @@ const definitions = [
   ['read_job', '查询异步作业结果和进度；只有完成状态及输出工件已出现才说明执行成功。', object({ jobId: str }, ['jobId']), 'GET', a => `/api/jobs/${id(a.jobId)}`],
   ['cancel_job', '用户要求取消时提交取消请求；随后查询最终状态，不将请求接受误报为已停止。', object({ jobId: str }, ['jobId']), 'POST', a => `/api/jobs/${id(a.jobId)}/cancel`],
 ]
+const auditContext = object({ sessionId: str, skillFingerprint: str, selectionRef: str, feedback: str })
+const vector = { type: 'array', minItems: 3, maxItems: 3, items: { type: 'number' } }
+const part = object({ id: str, name: str, kind: { type: 'string', enum: ['source', 'box', 'cylinder'] }, centerMm: vector, sizeMm: vector,
+  radiusMm: { type: 'number', exclusiveMinimum: 0 }, heightMm: { type: 'number', exclusiveMinimum: 0 }, axis: vector }, ['id', 'name', 'kind'])
+const thermal = object({ thicknessMm: { type: ['number', 'null'] }, material: { type: ['string', 'null'] }, massKg: { type: ['number', 'null'] },
+  specificHeatJPerKgK: { type: ['number', 'null'] }, conductivityWPerMK: { type: ['number', 'null'] }, powerW: { type: ['number', 'null'] } })
+const region = object({ id: str, name: str, partId: str, selector: { type: 'string', enum: ['xmin', 'xmax', 'ymin', 'ymax', 'zmin', 'zmax', 'lateral', 'all'] } }, ['id', 'name', 'partId', 'selector'])
+const recipe = object({ schemaVersion: { type: 'integer', const: 1 }, representation: { type: 'string', enum: ['source', 'solid', 'surface_shell'] },
+  parts: { type: 'array', minItems: 1, items: part }, thermal, regions: { type: 'array', items: region }, dimensionBasis: str,
+  notes: { type: 'string' }, sources: { type: 'array', items: source }, legacyCandidateFile: { type: ['string', 'null'] } }, ['representation', 'parts', 'dimensionBasis'])
+const side = object({ componentId: str, regionId: { type: ['string', 'null'] } }, ['componentId'])
+const contact = object({ id: str, a: side, b: side, status: { type: 'string', enum: ['candidate', 'confirmed', 'needs_review', 'excluded'] },
+  origin: { type: 'string', enum: ['manual', 'document', 'geometry'] }, areaMm2: { type: ['number', 'null'] }, conductanceWPerK: { type: ['number', 'null'] }, evidence: str, sources: { type: 'array', items: source } }, ['id', 'a', 'b', 'evidence'])
+definitions.push(
+  ['read_recipes', '读取单机可重建方案、源局部尺寸、安装区域及副本。使用稳定组件ID，单位Z-up毫米。', object(project, ['projectId']), 'GET', a => `/api/projects/${id(a.projectId)}/recipes`],
+  ['rebuild_recipes', '按工程师要求直接修改并重建当前单机方案。可组合盒体与圆柱；surface_shell输出面、不输出实体，热参数另存且未知填null。保持当前位姿，关联接触标为待复核；等待jobId完成。context关联会话、SG引用和工程师意见，不实时修改Skill。', object({ ...rev, changes: { type: 'array', minItems: 1, items: object({ componentId: str, recipe, reason: str }, ['componentId', 'recipe', 'reason']) }, context: auditContext }, ['projectId', 'revision', 'changes']), 'POST', a => `/api/projects/${id(a.projectId)}/recipes/rebuild`],
+  ['save_recipe_copy', '保存当前已应用的单机方案为命名副本，共用源几何。保存不表示认证工程正确。', object({ ...rev, componentId: str, name: str, context: auditContext }, ['projectId', 'revision', 'componentId', 'name']), 'POST', a => `/api/projects/${id(a.projectId)}/components/${id(a.componentId)}/recipe-copies`],
+  ['load_recipe_copy', '载入命名单机方案副本并重建，保持当前位姿。返回jobId，关联安装接触需复核。', object({ ...rev, componentId: str, copyId: str, context: auditContext }, ['projectId', 'revision', 'componentId', 'copyId']), 'POST', a => `/api/projects/${id(a.projectId)}/components/${id(a.componentId)}/recipe-copies/${id(a.copyId)}/load`],
+  ['read_contacts', '读取热接触清单、区域/源贴面证据和完整性。candidate/未知不能认作确认或无接触。', object(project, ['projectId']), 'GET', a => `/api/projects/${id(a.projectId)}/thermal-contacts`],
+  ['update_contacts', '维护安装/热接触双方区域、面积、状态和资料依据。confirmed必须明确两个有效区域；仅几何证据不能确认热连接；未知导通保持null。', object({ ...rev, contacts: { type: 'array', minItems: 1, items: contact }, context: auditContext }, ['projectId', 'revision', 'contacts']), 'POST', a => `/api/projects/${id(a.projectId)}/thermal-contacts`],
+  ['identify_equipment', '按配套文件可靠匹配单机并提交简洁中文名称及两层工程分类；保留源名称与稳定ID。不确定身份保持待识别，不编造设备名。', object({ ...rev, components: { type: 'array', items: object({ componentId: str, displayName: str, engineeringGroup: { type: 'string', enum: ['结构', '单机', '附件', '待分类'] }, nameStatus: { type: 'string', enum: ['identified', 'candidate', 'unidentified'], description: '可靠匹配才 identified；有冲突用 candidate；无依据用 unidentified，省略默认 candidate。' }, basis: str, sources: { type: 'array', items: source } }, ['componentId', 'displayName', 'basis']) }, context: auditContext }, ['projectId', 'revision', 'components']), 'POST', a => `/api/projects/${id(a.projectId)}/identities`],
+  ['read_evidence', '返回当前方案、测量、Skill绑定/实际读取指纹、检查未知项、接触、反馈和导出地址，供外部测试系统评分。插件不评分。', object(project, ['projectId']), 'GET', a => `/api/projects/${id(a.projectId)}/evidence`],
+  ['record_feedback', '仅保存工程师经验、对象/会话/引用和修改意见，供以后集中升级Skill；不实时改写Skill。', object({ ...rev, componentIds: { type: 'array', items: str }, reason: str, context: auditContext }, ['projectId', 'revision', 'reason']), 'POST', a => `/api/projects/${id(a.projectId)}/feedback`],
+)
 function id(value) { if (typeof value !== 'string' || !/^[A-Za-z0-9_.-]{1,160}$/.test(value)) throw new Error('无效对象ID'); return encodeURIComponent(value) }
 export const tools = definitions.map(([name, description, inputSchema]) => ({ name: `satellite_${name}`, description, inputSchema }))
 export async function callTool(name, args = {}, endpoint = process.env.SATCAD_SERVICE_URL || 'http://127.0.0.1:8787', signal) {
@@ -37,7 +61,7 @@ export async function callTool(name, args = {}, endpoint = process.env.SATCAD_SE
   for (const required of def[2].required) if (args[required] === undefined) throw new Error(`缺少参数 ${required}`)
   if (args.revision !== undefined && (!Number.isSafeInteger(args.revision) || args.revision < 0)) throw new Error('revision必须是非负整数')
   const [, , , method, route] = def
-  const body = { ...args }; for (const field of ['projectId', 'documentId', 'componentId', 'planId', 'jobId']) delete body[field]
+  const body = { ...args }; for (const field of ['projectId', 'documentId', 'componentId', 'planId', 'jobId', 'copyId']) delete body[field]
   if (name === 'satellite_rebuild_equipment_envelopes') body.planId = args.planId
   if (name === 'satellite_submit_metadata' && Array.isArray(body.components)) body.components = body.components.map(component => ({ ...component, origin: component.origin || 'document' }))
   const response = await fetch(`${endpoint.replace(/\/+$/, '')}${route(args)}`, { method, signal: signal || AbortSignal.timeout(110000), headers: { 'content-type': 'application/json', ...(process.env.SATCAD_SERVICE_TOKEN ? { authorization: `Bearer ${process.env.SATCAD_SERVICE_TOKEN}` } : {}) }, ...(method === 'GET' ? {} : { body: JSON.stringify(body) }) })
@@ -55,7 +79,7 @@ export async function callTool(name, args = {}, endpoint = process.env.SATCAD_SE
   return result
 }
 export async function main() {
-  const server = new Server({ name: 'satellite-geometry', version: '0.1.0' }, { capabilities: { tools: {} } })
+  const server = new Server({ name: 'satellite-geometry', version: '0.3.0' }, { capabilities: { tools: {} } })
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }))
   server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
     try { return { content: [{ type: 'text', text: JSON.stringify(await callTool(request.params.name, request.params.arguments, undefined, extra.signal)) }] } }

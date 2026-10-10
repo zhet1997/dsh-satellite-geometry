@@ -5,19 +5,28 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { Box, LoaderCircle, RotateCcw } from 'lucide-react';
 import { highlightCadMesh, prepareCadMesh } from './cadAppearance';
+import type { RegionFace } from './types';
 
-export type ViewerHandle = { fit: () => void; view: (direction: 'top' | 'front' | 'iso') => void; focus: (ids: string[]) => void };
+export type CameraState = { position: number[]; target: number[]; up: number[]; near: number; far: number };
+export type ViewerHandle = { fit: () => void; view: (direction: 'top' | 'front' | 'iso') => void; focus: (ids: string[]) => void; setCamera: (value: CameraState) => void };
 type Props = {
   url?: string; title: string; subtitle: string; selected: string[]; hidden: string[];
   wireframe: boolean; onSelect: (id: string | null, additive: boolean) => void;
+  onCameraChange?: (value: CameraState) => void; onContextMenu?: (id: string, x: number, y: number) => void;
+  regions?: RegionFace[];
 };
-type Runtime = { fit: () => void; view: ViewerHandle['view']; focus: ViewerHandle['focus']; highlight: (ids: string[], hidden: string[], wireframe: boolean) => void };
+type Runtime = ViewerHandle & { highlight: (ids: string[], hidden: string[], wireframe: boolean) => void; showRegions: (regions: RegionFace[]) => void };
 
-export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, title, subtitle, selected, hidden, wireframe, onSelect }, ref) {
+export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, title, subtitle, selected, hidden, wireframe, onSelect, onCameraChange, onContextMenu, regions = [] }, ref) {
   const mount = useRef<HTMLDivElement>(null);
   const runtime = useRef<Runtime | null>(null);
   const selectRef = useRef(onSelect); selectRef.current = onSelect;
   const selectionRef = useRef(selected); selectionRef.current = selected;
+  const hiddenRef = useRef(hidden); hiddenRef.current = hidden;
+  const cameraChangeRef = useRef(onCameraChange); cameraChangeRef.current = onCameraChange;
+  const contextRef = useRef(onContextMenu); contextRef.current = onContextMenu;
+  const cameraRef = useRef<CameraState | null>(null);
+  const regionsRef = useRef(regions); regionsRef.current = regions;
   const [state, setState] = useState<'empty' | 'loading' | 'ready' | 'error'>('empty');
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -25,8 +34,11 @@ export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, tit
     fit: () => runtime.current?.fit(),
     view: (direction) => runtime.current?.view(direction),
     focus: (ids) => runtime.current?.focus(ids),
+    setCamera: value => { cameraRef.current = value; runtime.current?.setCamera(value); },
   }), []);
   useEffect(() => runtime.current?.highlight(selected, hidden, wireframe), [selected, hidden, wireframe]);
+  useEffect(() => { if (hidden.length && selected.length) runtime.current?.focus(selected); }, [selected.join('|'), hidden.join('|')]);
+  useEffect(() => runtime.current?.showRegions(regions), [regions]);
 
   useEffect(() => {
     const element = mount.current;
@@ -37,7 +49,7 @@ export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, tit
     try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
     catch { setError('浏览器未能初始化 3D 显示，请确认硬件加速可用'); setState('error'); return; }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-    renderer.setClearColor(0xf0f4f2, 1);
+    renderer.setClearColor(0xe9eef4, 1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
@@ -45,13 +57,35 @@ export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, tit
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(36, 1, 0.001, 10000);
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
+    controls.enableDamping = false;
     controls.dampingFactor = 0.12;
     const ambient = new THREE.HemisphereLight(0xffffff, 0x627181, 0.8); scene.add(ambient);
     const key = new THREE.DirectionalLight(0xffffff, 2.0); key.position.set(4, 8, 5); scene.add(key);
     const fill = new THREE.DirectionalLight(0xb3d4e6, 0.55); fill.position.set(-3, 2, -5); scene.add(fill);
     const meshes: Array<{ mesh: THREE.Mesh; cid: string | null; original: THREE.Material | THREE.Material[] }> = [];
     const highlights = new THREE.Group(); scene.add(highlights);
+    const regionGroup = new THREE.Group(); scene.add(regionGroup);
+    let suppressCamera = false;
+    const readCamera = (): CameraState => ({ position: camera.position.toArray(), target: controls.target.toArray(), up: camera.up.toArray(), near: camera.near, far: camera.far });
+    const cameraChanged = () => { cameraRef.current = readCamera(); if (!suppressCamera) cameraChangeRef.current?.(cameraRef.current); };
+    controls.addEventListener('change', cameraChanged);
+    const setCamera = (value: CameraState) => {
+      suppressCamera = true;
+      camera.position.fromArray(value.position); camera.up.fromArray(value.up); controls.target.fromArray(value.target);
+      camera.near = value.near; camera.far = value.far; camera.updateProjectionMatrix(); controls.update();
+      cameraRef.current = readCamera(); suppressCamera = false;
+    };
+    const showRegions = (items: RegionFace[]) => {
+      while (regionGroup.children.length) { const item=regionGroup.children[0] as THREE.Mesh; regionGroup.remove(item); item.geometry.dispose(); (item.material as THREE.Material).dispose(); }
+      for (const item of items) {
+        if(!item.verticesMm?.length || !item.triangles?.length) continue;
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position',new THREE.Float32BufferAttribute(item.verticesMm.flatMap(([x,y,z])=>[x/1000,z/1000,-y/1000]),3));
+        geometry.setIndex(item.triangles.flat()); geometry.computeVertexNormals();
+        const mesh=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({color:0xffab24,side:THREE.DoubleSide,transparent:true,opacity:.8,depthTest:false,depthWrite:false}));
+        mesh.renderOrder=30; regionGroup.add(mesh);
+      }
+    };
     let root: THREE.Object3D | null = null;
     let box = new THREE.Box3();
     let frame = 0;
@@ -69,7 +103,8 @@ export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, tit
       const center = target.getCenter(new THREE.Vector3());
       const size = target.getSize(new THREE.Vector3());
       const extent = Math.max(size.x, size.y, size.z, 0.001);
-      const distance = extent / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.9;
+      const halfAngle = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.min(1, camera.aspect));
+      const distance = Math.max(size.length() / 2, 0.0005) / Math.sin(halfAngle) * 1.12;
       const vector = direction === 'top' ? new THREE.Vector3(0.0001, 1, 0)
         : direction === 'front' ? new THREE.Vector3(0, 0.15, 1) : new THREE.Vector3(1.15, 0.75, 1.3);
       camera.position.copy(center).add(vector.normalize().multiplyScalar(distance));
@@ -103,8 +138,12 @@ export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, tit
       });
     };
     runtime.current = {
-      fit: () => fit(),
-      view: (direction) => { currentDirection = direction; fit(box, direction); },
+      fit: () => fit(), setCamera, showRegions,
+      view: (direction) => {
+        currentDirection = direction;
+        if (hiddenRef.current.length && selectionRef.current.length) runtime.current?.focus(selectionRef.current);
+        else fit(box, direction);
+      },
       focus: (ids) => {
         const bounds = new THREE.Box3();
         meshes.filter(({ cid }) => cid && ids.includes(cid)).forEach(({ mesh }) => bounds.expandByObject(mesh));
@@ -124,11 +163,15 @@ export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, tit
           cursor = cursor.parent;
         }
         const original = object.material;
-        prepareCadMesh(object);
+        prepareCadMesh(object, cid || object.name);
         meshes.push({ mesh: object, cid, original });
       });
-      box = new THREE.Box3().setFromObject(root); fit();
-      highlight(selectionRef.current, hidden, wireframe); setState('ready');
+      box = new THREE.Box3().setFromObject(root);
+      highlight(selectionRef.current, hiddenRef.current, wireframe);
+      if(cameraRef.current) setCamera(cameraRef.current);
+      else if(hiddenRef.current.length&&selectionRef.current.length) runtime.current?.focus(selectionRef.current);
+      else fit();
+      showRegions(regionsRef.current); setState('ready');
     }, undefined, (reason) => {
       if (!disposed) { setError(reason instanceof Error ? reason.message : '几何模型加载失败'); setState('error'); }
     });
@@ -136,7 +179,7 @@ export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, tit
     const pointer = new THREE.Vector2(); let down: { x: number; y: number } | null = null;
     const onDown = (event: PointerEvent) => { down = { x: event.clientX, y: event.clientY }; };
     const onUp = (event: PointerEvent) => {
-      if (!down || Math.hypot(event.clientX - down.x, event.clientY - down.y) > 5) return;
+      if (event.button!==0 || !down || Math.hypot(event.clientX - down.x, event.clientY - down.y) > 5) return;
       const bounds = renderer.domElement.getBoundingClientRect();
       pointer.set((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1);
       raycaster.setFromCamera(pointer, camera);
@@ -146,6 +189,14 @@ export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, tit
     };
     renderer.domElement.addEventListener('pointerdown', onDown);
     renderer.domElement.addEventListener('pointerup', onUp);
+    const onContext = (event: MouseEvent) => {
+      event.preventDefault(); const area=renderer.domElement.getBoundingClientRect();
+      pointer.set((event.clientX-area.left)/area.width*2-1,-(event.clientY-area.top)/area.height*2+1);
+      raycaster.setFromCamera(pointer,camera); const hit=raycaster.intersectObjects(meshes.filter(x=>x.mesh.visible).map(x=>x.mesh),false)[0];
+      const cid=hit&&meshes.find(x=>x.mesh===hit.object)?.cid;
+      if(cid) contextRef.current?.(cid,event.clientX,event.clientY);
+    };
+    renderer.domElement.addEventListener('contextmenu',onContext);
     const observer = new ResizeObserver(() => {
       const width = Math.max(element.clientWidth, 1), height = Math.max(element.clientHeight, 1);
       renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix();
@@ -154,6 +205,7 @@ export const Viewer = forwardRef<ViewerHandle, Props>(function Viewer({ url, tit
     return () => {
       disposed = true; runtime.current = null; cancelAnimationFrame(frame); observer.disconnect();
       renderer.domElement.removeEventListener('pointerdown', onDown); renderer.domElement.removeEventListener('pointerup', onUp);
+      renderer.domElement.removeEventListener('contextmenu',onContext); controls.removeEventListener('change',cameraChanged); showRegions([]);
       controls.dispose(); clearHighlights();
       if (root) disposeObject(root);
       meshes.forEach(({ original }) => (Array.isArray(original) ? original : [original]).forEach((m) => m.dispose()));

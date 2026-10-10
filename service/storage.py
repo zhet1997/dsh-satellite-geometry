@@ -150,7 +150,7 @@ def check_revision(project: dict, revision: int) -> None:
 
 def invalidate_exports(project: dict) -> None:
     """Old artifacts remain immutable but must not masquerade as current output."""
-    for key in ("step", "report", "contacts", "bundle"):
+    for key in ("step", "report", "contacts", "bundle", "recipes"):
         project["artifacts"].pop(key, None)
     project.pop("lastExport", None)
 

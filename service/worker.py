@@ -34,6 +34,8 @@ def run(job_id):
             if current.get("activeJobId") != job_id or db.get_job(job_id).get("cancelRequested"):
                 raise db.Cancelled("任务已取消或失去项目所有权")
             result.pop("activeJobId", None)
+            if "workflowBindings" in current:
+                result["workflowBindings"] = current["workflowBindings"]
             increment = job["incrementRevision"]
             if increment:
                 db.invalidate_exports(result)

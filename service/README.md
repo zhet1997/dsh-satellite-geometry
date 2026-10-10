@@ -1,5 +1,7 @@
 # Satellite Geometry service
 
+Current service version: **0.3.0**. The thermal workbench API and button mapping are documented in [workbench-api.md](../docs/workbench-api.md). `workbench.py` validates recipes, named copies, identity states, contact edits, immutable Skill bindings, and external evidence. `modeling.py` builds solid/face geometry; `skill_versions.py` stores versioned content and resources.
+
 This is the independent STEP-first backend used by the DSH MCP tools and the web workbench. The API process stores project state and supervises CAD jobs. Each CAD job runs in a separate Python process so a long OCCT operation cannot freeze HTTP health, progress, or cancellation requests. The original `codex_web` application is not required at runtime.
 
 ## Runtime and persistence
@@ -77,7 +79,11 @@ Export creates a named STEP assembly following the working tree, GLB, `propertie
 ## Focused validation
 
 ```sh
-python -m unittest service.test_api service.test_geometry -v
+python -m unittest service.test_api service.test_geometry service.test_workbench -v
 ```
 
 The fixtures exercise repeated instances and nested transforms, true foot contact area, envelope false positives, thermal preservation, source-pair cache invalidation, pose constraints, rejection of damaging moves, semantic-group STEP roundtrips, quote coverage, manual evidence replacement, concurrent upload reservation, and cancellable isolated workers.
+
+Recipe `surface_shell` means a face collection with no solids. Its thickness, material, mass and other thermal fields remain separate from geometry. Both candidates and the assembled export are checked by importing the actual STEP file without the pre-export BRep cache. A valid in-memory shape alone does not pass the serialization gate. Installation selectors are clipped to exposed output faces; buried regions reject the rebuild. Geometry or pose changes invalidate linked contacts, and geometric candidates do not certify thermal conductance.
+
+Identity `nameStatus` is `identified`, `candidate`, or `unidentified`; omitted states default to `candidate`. Content hashing and session bindings keep Skill versions immutable. New default rules create a new version for future runs; existing session pins are unchanged. `/evidence` exposes the actual recipe, identity evidence, checks, unknowns, feedback and downloaded artifacts, with `scoring: external`.

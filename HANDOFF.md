@@ -1,14 +1,14 @@
 # Agent Web → DSH 插件开发交接
 
-整理与路径复核：**2026-10-07**。用途：接手本机卫星几何插件，或将原 Agent Web 的其他模块拆成可安装的 DSH 插件。本文汇总已确认的位置、算例、实现边界和迁移经验；不是要求立即执行下一模块开发的指令。
+远端路径复核：**2026-10-07**；本机 0.3.0 开发与验收更新：**2026-10-10**。用途：接手本机卫星几何插件，或将原 Agent Web 的其他模块拆成可安装的 DSH 插件。远端路径、哈希与案例说明仍对应 10 月 7 日的只读观察；本轮没有再次修改或验证远端应用。
 
-本机工程于同日迁到 **`D:\Codes\dsh-satellite-geometry`**。本文本机路径已更新；完整迁移记录与验证见 [MIGRATION.md](MIGRATION.md)。远端来源路径不变。
+本机工程于 2026-10-07 迁到 **`D:\Codes\dsh-satellite-geometry`**。完整迁移记录见 [MIGRATION.md](MIGRATION.md)。本轮需求见 [requirements-20261009.md](docs/requirements-20261009.md)，业务接口见 [workbench-api.md](docs/workbench-api.md)，测试结论见 [VALIDATION-0.3.md](docs/VALIDATION-0.3.md)。
 
 ## 1. 接手时先知道这几件事
 
 1. 用户所称的原始 `web_agent` 项目，实际代码目录是 5090 服务器上的 **`/data/lbk/codex_web/agent-web`**。`/data/lbk/codex_web` 是外围工作区，包含原项目、数据、DSH 定制仓库与其他服务。
 2. 本机独立提取项目是 **`D:\Codes\dsh-satellite-geometry`**。它运行时不需要启动整个远端 Agent Web。
-3. 本机网页版 DSH 是 **Windows npm 安装的 `@deepseek-ai/dsh@0.2.0-rc.2`**；卫星插件版本是 **0.2.0**；计算服务镜像仍是 **0.1.0**。三个版本号指不同层。
+3. 本机网页版 DSH 是 **Windows npm 安装的 `@deepseek-ai/dsh@0.2.0-rc.2`**；卫星插件与计算服务均为 **0.3.0**。宿主与插件/计算服务版本号指不同层。
 4. 3080 是普通 DSH web profile，3081 是卫星专用 profile，8787 是 Docker 几何服务。DSH Windows 桌面应用另有内置运行时，不能把网页版兼容验证等同于桌面版验证。
 5. 原服务器上现在已有 **`/data/lbk/codex_web/deepseek-harness/packages/custom`**，含设计数据、设计结果、版本管理等 DSH 定制实现。迁移其他模块前，应先检查这里是否已有可复用实现，避免重复提取。
 6. 原始卫星 STEP 有 **3 份**：立方星、CATCH、天空智算实验星。前两份已复制到本机并验证；第三份只核对了远端原文件、配套资料与哈希，尚未在本插件中验收。
@@ -51,10 +51,11 @@
 | 主网页版监控日志 | `C:\Users\49076\.dsh\runtime\logs` | `dsh-web-*.out.log` / `*.err.log` |
 | 卫星启动日志、PID | `D:\Codes\dsh-satellite-geometry\runtime` | `dsh.stdout.log`、`dsh.stderr.log`、`dsh.pid`、`wsl-keepalive.pid`；PID 不应写死 |
 | 2026-10-02 升级备份 | `D:\Codes\dsh-satellite-geometry\runtime\dsh-backup-20261002` | 旧配置和监控脚本，可能含凭据；不打入发布包 |
-| 几何生产容器 | `dsh-satellite-geometry-geometry-1` | 镜像 `dsh-satellite-geometry:0.1.0`；2026-10-07 为 healthy |
+| 几何生产容器 | `dsh-satellite-geometry-geometry-1` | 镜像 `dsh-satellite-geometry:0.3.0`；2026-10-10 已更新并核对健康入口 |
 | Docker 命名卷 | `dsh-satellite-geometry_project-data` → 容器 `/data` | **正式项目状态及产物的主要持久位置** |
 | DSH 会话和存储 | `C:\Users\49076\.dsh\sessions`、`C:\Users\49076\.dsh\storages` | 不在几何 Docker 卷内 |
 | 固定选区引用 | `C:\Users\49076\.dsh\satellite-geometry\selection-contexts` | 绑定 DSH 会话、几何服务、projectId、revision 和组件 ID |
+| 会话固定 Skill | `C:\Users\49076\.dsh\satellite-geometry\workflow-contexts` | 正文、资源、内容指纹及实际读取时间；另一版本须使用新会话 |
 | 原始案例副本 | `D:\Codes\dsh-satellite-geometry\cases` | 原 STEP、DOCX、XLSX；不纳入 Git |
 | 历史导出和测试产物 | `D:\Codes\dsh-satellite-geometry\validation\artifacts` | 证据快照，不保证等于当前生产修订 |
 
@@ -66,12 +67,13 @@
 
 | 文件 | 状态 |
 |---|---|
-| [lbk-dsh-satellite-geometry-0.2.0.tgz](/D:/Codes/dsh-satellite-geometry/dist/lbk-dsh-satellite-geometry-0.2.0.tgz) | 当前适配包；261,890 字节；面向 DSH 0.2.0-rc.2 |
+| [lbk-dsh-satellite-geometry-0.3.0.tgz](/D:/Codes/dsh-satellite-geometry/release/lbk-dsh-satellite-geometry-0.3.0.tgz) | 当前热设计工作台包；面向 DSH 0.2.0-rc.2；含预构建 UI、MCP 与固定 Skill 入口 |
+| [lbk-dsh-satellite-geometry-0.2.0.tgz](/D:/Codes/dsh-satellite-geometry/dist/lbk-dsh-satellite-geometry-0.2.0.tgz) | 历史适配包；261,890 字节 |
 | [dsh-satellite-geometry-0.1.0.tgz](/D:/Codes/dsh-satellite-geometry/dist/dsh-satellite-geometry-0.1.0.tgz) | 旧包；261,441 字节；当前磁盘文件名如左，历史报告使用带 `lbk-` 前缀的名称 |
 | [dsh-satellite-geometry-source-0.1.0.zip](/D:/Codes/dsh-satellite-geometry/release/dsh-satellite-geometry-source-0.1.0.zip) | 旧源码发布快照，不含后来的 0.2 宿主适配 |
 | 本机 Git 基线 | 初始提取提交 `6244c57f2c4836ae5e67220899bf5d11f362fe2e`；迁移后的提交包含 DSH 0.2 适配，最新状态以 `git log -1` 为准 |
 
-当前包 SHA256：`29ecc888781b0f6376bbfdecefd26d1554d88fc09caffee1f199226b8f1c9d6e`。
+0.3.0 包 SHA256 见 [VALIDATION-0.3.md](docs/VALIDATION-0.3.md)。历史 0.2.0 包 SHA256：`29ecc888781b0f6376bbfdecefd26d1554d88fc09caffee1f199226b8f1c9d6e`。
 
 旧包 SHA256：`d02dcba9fc3e8c2dccc0466b66cce320dc51660af1ab45e26c8abd7ac8abdc61`。
 
@@ -275,12 +277,15 @@ CATCH 原生 DSH 文档验收会话：`satellite-catch-documents-20260929`，标
 | [plugin/src/index.mjs](/D:/Codes/dsh-satellite-geometry/plugin/src/index.mjs) | Host：设置、凭据、认证路由、文件代理、MCP 启停、原生选区工具 |
 | [plugin/src/client.jsx](/D:/Codes/dsh-satellite-geometry/plugin/src/client.jsx) | DSH 设置标签、会话输入区、选区写入草稿 |
 | [plugin/src/selection-context.mjs](/D:/Codes/dsh-satellite-geometry/plugin/src/selection-context.mjs) | 固定选区引用的保存、分页、会话与服务范围校验 |
-| [plugin/mcp/server.mjs](/D:/Codes/dsh-satellite-geometry/plugin/mcp/server.mjs) | stdio MCP → 几何 HTTP；15 个工具 |
+| [plugin/mcp/server.mjs](/D:/Codes/dsh-satellite-geometry/plugin/mcp/server.mjs) | stdio MCP → 几何 HTTP；25 个工具 |
+| [plugin/src/workflow-context.mjs](/D:/Codes/dsh-satellite-geometry/plugin/src/workflow-context.mjs) | 会话固定 Skill 与严格 DSH JSON 兼容；OCCT 的负零数值规范化 |
 | [插件 Skill](/D:/Codes/dsh-satellite-geometry/plugin/skills/satellite-geometry/SKILL.md) | 指导模型理解业务边界、资料来源与操作顺序 |
 | [plugin/public/workbench.html](/D:/Codes/dsh-satellite-geometry/plugin/public/workbench.html) | 原生对话 iframe、业务查看器 iframe、分栏、同源消息 |
 | [web/src/App.tsx](/D:/Codes/dsh-satellite-geometry/web/src/App.tsx)、[Viewer.tsx](/D:/Codes/dsh-satellite-geometry/web/src/Viewer.tsx) | 独立业务界面与三维交互 |
 | [service/app.py](/D:/Codes/dsh-satellite-geometry/service/app.py) | 参数校验、项目/文档/计划/几何 API |
 | [service/geometry.py](/D:/Codes/dsh-satellite-geometry/service/geometry.py) | CAD 导入、原型/实例、简化、相交、接触、导出 |
+| [service/workbench.py](/D:/Codes/dsh-satellite-geometry/service/workbench.py)、[modeling.py](/D:/Codes/dsh-satellite-geometry/service/modeling.py) | recipe、面壳、安装区域、副本、身份、接触、意见和外部证据接口 |
+| [service/skill_versions.py](/D:/Codes/dsh-satellite-geometry/service/skill_versions.py)、[建模 Skill](/D:/Codes/dsh-satellite-geometry/service/resources/thermal-modeling/SKILL.md) | 内容寻址版本、正文/资源快照、默认规则；不实时训练或自我升级 |
 | [service/tasks.py](/D:/Codes/dsh-satellite-geometry/service/tasks.py)、[worker.py](/D:/Codes/dsh-satellite-geometry/service/worker.py) | 异步原生计算隔离、进度与取消 |
 | [service/storage.py](/D:/Codes/dsh-satellite-geometry/service/storage.py)、[documents.py](/D:/Codes/dsh-satellite-geometry/service/documents.py) | 独立项目存储、文档读取和来源记录 |
 | [Dockerfile](/D:/Codes/dsh-satellite-geometry/Dockerfile)、[requirements.lock](/D:/Codes/dsh-satellite-geometry/requirements.lock) | 可迁移计算环境 |
@@ -296,7 +301,10 @@ Skill 提供操作说明，MCP 提供可执行工具，npm DSH 插件负责把 U
 
 - 模型连接沿用 DSH；Docker 主要提供几何和文档处理，不要求部署离线 LLM。
 - 输入为 STEP 与配套文件。缺少质量、材料、功耗或约束时保留未知，字段来源和模型推断分开记录。
-- 热分析前处理与装配检查分别定义输出和验收。输出 STEP、组件/属性清单、安装/接触关系；不在此插件做网格和求解。
+- 当前工作台用途为热分析，检查聚焦真实干涉、简化重叠及安装接触。输出 STEP、组件方案/属性和热接触清单；不做网格和求解。旧底层 API 保留其他用途兼容性。
+- 单机方案为可重建对象：box/cylinder/source 组成、实体/面壳、原位姿、独立热属性、安装区域和证据。当前方案直接修改，仅手动副本；不建设完整撤销历史。
+- 中文名称需区分可靠、候选和未知；配套表行序不足以证明匹配。面壳是零实体的面集合，禁止按包络体积推质量或热容。实际 STEP 回读不得使用写前 BRep 缓存。
+- 意见与对话摘要留存供以后集中升级 Skill；默认 Skill 修改生成新内容版本，已绑定会话的正文不能替换。外部测试框架调用业务 API 与 `/evidence`，插件不内置 gate。
 - 默认保留原布局。只有真实装配问题或用户明确要求优化，且有充分约束时才尝试移动。包络假干涉优先细化/拆分，不能移动真实零件掩盖问题。
 - STEP 的源原型、装配树和原位姿不可变；编辑状态另存。写操作带 revision，后台长作业返回 jobId，完成前不能宣称结果已生成。
 - API 的位置单位为 mm、Z-up；GLB 为 m、Y-up，映射 `[x,z,-y]/1000`。复用查看器时不能重复转换。
@@ -371,7 +379,17 @@ npm pack --pack-destination ..\dist
 | [scripts/validate_dsh_upgrade.mjs](/D:/Codes/dsh-satellite-geometry/scripts/validate_dsh_upgrade.mjs) | 重测 DSH 集成；会保存当前服务地址、重连 MCP 并创建测试选区引用，并非纯只读 |
 | [scripts/validate_http.py](/D:/Codes/dsh-satellite-geometry/scripts/validate_http.py) | 实际几何 HTTP 流程；支持 `--existing-project` 与 `--export-only`，避免不必要的重复导入/简化 |
 
-后端针对性测试在项目根目录使用 Python 开发环境执行 `python -m unittest service.test_api service.test_geometry -v`。原生模型测试脚本位于 `plugin/tests/native-*.mjs`，会实际调用配置的模型；当前 `.tgz` 安装测试和普通 `npm test` 不会调用模型。
+后端检查在项目根目录执行 `python -m unittest service.test_api service.test_geometry service.test_workbench -v`。本轮 36 项通过，插件 7 项通过。真实 DSH 合成与 CATCH 流程、失败及人工复核说明见 [VALIDATION-0.3.md](docs/VALIDATION-0.3.md)。原生模型测试会调用已配置模型；安装检查和普通 `npm test` 不调用模型。
+
+本轮主要独立验收工程如下，不覆盖原有案例工程：
+
+| 工程 ID | 当前修订与用途 | 对应会话 / 证据 |
+|---|---|---|
+| `bb62c0b0d2cc490d8bd1f39953d51a76` | 当前 7；无界面 API 与新版候选身份检查；磁盘导出快照为 6 | `v03-review-5557a2c2-8114-42f1-abf5-32f63be6ede2`；`validation/raw/v03/api.json`、`review-evidence.json` |
+| `0f13d851447549bb9a1978baa1d09b9c` | 5；真实原生 DSH 合成建模，组合实体＋面壳 | `v03-native-d5c9716f-aa44-4f39-a8c6-822bfab02512`；`native-evidence.json` |
+| `4f7c0f1afb834c98a339d5931f1a6588` | 22；CATCH 真实整星候选基线，经开发复核导出，工程判断仍未知 | `v03-catch-5d88705c-2cf4-406e-82bd-16417a790225`；`catch-final-evidence.json` |
+
+本轮原始证据、截图和案例下载在 `D:\Codes\dsh-satellite-geometry\validation`，受 `.gitignore` 保护，不随 npm 或 Git 源码分发。最终包已在隔离 `DSH_HOME` 的临时 3084 宿主上运行验证，临时进程已停止；正式工作台仍在 3081。当前 CATCH 有 11 个候选身份、13 个源拓扑缺陷组件及部分未知接触；不能把可读 STEP 当作已认证热工程模型。
 
 临时测试容器 `satellite-geometry-validation` 当前已停止；不需要重启旧开发端口 8789。历史原始对话包含早期失败与过时端口，后续应以最终验证摘要和当前服务配置为准。
 
@@ -392,6 +410,6 @@ npm pack --pack-destination ..\dist
 
 ## 11. 可直接交给后续开发者的任务背景
 
-> 先阅读 `D:\Codes\dsh-satellite-geometry\HANDOFF.md`。本机已完成一个 DSH 卫星几何插件，宿主是 Windows npm 的 DSH 0.2.0-rc.2，插件 0.2.0，计算服务运行于 WSL Docker。请把它作为集成参考。原 Agent Web 位于 SSH 别名 work-server-5090-ali 的 `/data/lbk/codex_web/agent-web`；同级 `deepseek-harness/packages/custom` 已有部分 DSH 迁移实现。先只读检查我指定的下一模块、当前未提交代码及既有定制插件，列清依赖和可复用部分，再按本次新任务确定范围。保持原模型模板、现有会话与生产项目不变；所有写操作使用当前修订。不要把旧源码 ZIP、旧验收修订或远端 0.1.0 插件副本当成最新本机实现。
+> 先阅读 `D:\Codes\dsh-satellite-geometry\HANDOFF.md`、`docs/workbench-api.md` 和 `docs/VALIDATION-0.3.md`。本机宿主是 Windows npm 的 DSH 0.2.0-rc.2，插件和计算服务为 0.3.0，服务运行于 WSL Docker。请把它作为集成参考。原 Agent Web 位于 SSH 别名 work-server-5090-ali 的 `/data/lbk/codex_web/agent-web`；同级 `deepseek-harness/packages/custom` 已有部分 DSH 迁移实现。先只读检查我指定的下一模块、当前未提交代码及既有定制插件，列清依赖和可复用部分，再按新任务确定范围。保持原模板、会话与生产项目；所有写操作使用当前修订。不要把旧源码 ZIP、旧验收修订或远端 0.1.0 插件副本当成最新本机实现。
 
-本文仅在 2026-10-07 做路径、版本、案例哈希与现有状态的只读复核；没有重新运行整星简化、远端新 DSH 插件测试或桌面版兼容测试。
+远端路径和原始案例哈希仍为 2026-10-07 的只读复核。2026-10-10 在本机独立工程运行了本轮测试和 CATCH 建模；没有认证远端定制插件或 Windows 桌面内置宿主兼容性。

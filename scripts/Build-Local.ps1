@@ -22,5 +22,5 @@ if ($LASTEXITCODE -ne 0 -or -not $satelliteLinuxRoot) { throw '无法将工作�
 $satelliteLinuxRoot = $satelliteLinuxRoot.Trim()
 & wsl.exe -d $Distro -u root -- systemctl start docker
 if ($LASTEXITCODE -ne 0) { throw 'Docker 未能启动' }
-& wsl.exe -d $Distro -u root --cd $satelliteLinuxRoot -- /usr/bin/docker -H unix:///var/run/docker.sock build --network host -t dsh-satellite-geometry:0.1.0 .
+& wsl.exe -d $Distro -u root --cd $satelliteLinuxRoot -- /usr/bin/docker -H unix:///var/run/docker.sock build --network host -t dsh-satellite-geometry:0.3.0 .
 if ($LASTEXITCODE -ne 0) { throw '容器构建失败' }

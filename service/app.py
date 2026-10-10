@@ -59,7 +59,7 @@ async def lifespan(app):
         await asyncio.to_thread(lambda: EXECUTOR.submit(lambda: None).result())
 
 
-app = FastAPI(title="Satellite Geometry Service", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Satellite Geometry Service", version="0.3.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("SATCAD_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8787,http://127.0.0.1:8787,http://localhost:3080,http://127.0.0.1:3080").split(","),
                    allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Authorization"])
 
@@ -187,7 +187,8 @@ class Semantics(Revision):
 
 
 def get_project(project_id):
-    return db.load_project(project_id)
+    from service.modeling import ensure_workbench
+    return ensure_workbench(db.load_project(project_id))
 
 
 def ready_project(project_id, revision=None):
@@ -283,12 +284,14 @@ def submit(project, kind, payload=None, increment=True):
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "satellite-geometry", "version": "0.1.0"}
+    return {"status": "ok", "service": "satellite-geometry", "version": "0.3.0"}
 
 
 @app.get("/api/capabilities")
 def capabilities():
-    return {"apiVersion": 1, "sourceFormats": ["step", "stp"], "documentFormats": ["docx", "xlsx", "pdf", "txt", "md", "csv", "json"],
+    return {"apiVersion": 2, "recipes": ["source", "solid", "surface_shell"], "recipeParts": ["box", "cylinder", "source"],
+            "recipeCopies": True, "skillVersions": "immutable_session_bound", "evidenceScoring": "external",
+            "sourceFormats": ["step", "stp"], "documentFormats": ["docx", "xlsx", "pdf", "txt", "md", "csv", "json"],
             "strategies": ["conservative", "box", "multibox"], "preserveOriginalPoseByDefault": True,
             "equivalentEquipmentEnvelopes": {"available": True, "requiresExplicitUserChoice": True, "thermalContacts": "separately_defined", "movesComponents": False},
             "checks": ["original_step_solid_intersection", "candidate_envelope_intersection", "contact_proximity", "topology_readback"],
@@ -506,6 +509,15 @@ def update_metadata(project_id: str, request: Metadata):
                         field_key = "motionConstraints." + field
                         provenance[field_key] = {"origin": item.origin, "state": "known", "at": db.now(), "sources": [reference for reference in references if reference["field"] == field_key]}
             metadata["sources"] = old_references + references
+            from service.modeling import ensure_workbench, fingerprint
+            ensure_workbench(project)
+            c = by_id[item.id]
+            for key in ("material", "massKg", "powerW"):
+                if key in changed:
+                    c["recipe"]["thermal"][key] = metadata.get(key)
+            c["recipeFingerprint"] = fingerprint(c["recipe"])
+            for region in c.get("installationRegions", []):
+                region["recipeFingerprint"] = c["recipeFingerprint"]
         if request.notes is not None:
             project["notes"] = request.notes
         project["checks"]["thermalStatus"] = "unknown"
@@ -608,7 +620,10 @@ def update_semantics(project_id: str, request: Semantics):
                     raise ValueError("重命名需一个组件及新名称")
                 component = by_id[operation.componentIds[0]]
                 component.setdefault("originalName", component["name"])
+                component.setdefault("sourceName", component["name"])
                 component["name"] = operation.name
+                if any("\u4e00" <= char <= "\u9fff" for char in operation.name):
+                    component.update(displayName=operation.name, nameStatus="identified")
                 tree[component["id"]]["name"] = operation.name
             elif operation.action == "group":
                 if len(operation.componentIds) < 2 or not operation.name:
@@ -651,6 +666,9 @@ def update_semantics(project_id: str, request: Semantics):
         db.invalidate_exports(project)
         return db.save_project(project, increment=True)
 
+
+from service.workbench import router as workbench_router
+app.include_router(workbench_router)
 
 # API routes precede the optional self-contained web workbench.
 web_dist = Path(__file__).resolve().parents[1] / "web" / "dist"

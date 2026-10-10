@@ -215,7 +215,7 @@ class GeometryWorkflowTests(unittest.TestCase):
                 # not silently turn this newly introduced failure into success.
                 return SimpleNamespace(isValid=lambda: False)
             return native_read(path)
-        with patch("service.geometry.read_shape", side_effect=failed_readback):
+        with patch("service.geometry.read_step_fresh", side_effect=failed_readback):
             with self.assertRaisesRegex(ValueError, "新的拓扑检查失败"):
                 export_project(project, self.job(project))
         self.assertNotIn("bundle", project["artifacts"])
