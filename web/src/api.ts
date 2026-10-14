@@ -28,10 +28,13 @@ export function createClient(apiBase: string) {
     xhr.upload.onprogress = (event) => { if (event.lengthComputable) onProgress?.(event.loaded / event.total * 100); };
     xhr.onerror = () => reject(new Error('文件上传失败，请检查服务连接'));
     xhr.onload = () => {
-      let body: Record<string, unknown>;
-      try { body = JSON.parse(xhr.responseText); } catch { reject(new Error('服务返回了无法读取的结果')); return; }
-      if (xhr.status < 200 || xhr.status >= 300) reject(new ApiError(String(body.detail ?? body.error ?? '文件上传失败'), xhr.status));
-      else resolve(body as T);
+      let body: Record<string, unknown> | null = null;
+      try { const value: unknown = JSON.parse(xhr.responseText); if (value && typeof value === 'object' && !Array.isArray(value)) body = value as Record<string, unknown>; } catch { /* Preserve the HTTP failure even when a proxy returns plain text. */ }
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new ApiError(String(body?.detail ?? body?.error ?? `文件上传未完成（服务状态 ${xhr.status}）`), xhr.status));
+      } else if (!body) {
+        reject(new ApiError('文件已发送，但服务未确认保存结果，请刷新工程后检查资料列表', xhr.status));
+      } else resolve(body as T);
     };
     const form = new FormData(); form.append('file', file); xhr.send(form);
   });
@@ -43,8 +46,9 @@ export function createClient(apiBase: string) {
     create: (name: string) => post<Project>('/projects', { name }),
     get: (id: string) => request<Project>(projectPath(id)),
     uploadStep: (id: string, file: File, onProgress?: (value: number) => void) => upload<{ jobId: string }>(`${projectPath(id)}/import`, file, onProgress),
-    uploadDocument: (id: string, file: File) => upload<unknown>(`${projectPath(id)}/documents`, file),
+    uploadDocument: (id: string, file: File) => upload<{ document: ProjectDocument; revision: number; duplicate?: boolean }>(`${projectPath(id)}/documents`, file),
     document: (id: string, documentId: string) => request<ProjectDocument>(`${projectPath(id)}/documents/${encodeURIComponent(documentId)}`),
+    recoverDocument: (id: string, documentId: string, revision: number) => post<{ document: ProjectDocument; revision: number }>(`${projectPath(id)}/documents/${encodeURIComponent(documentId)}/recover`, { revision, method: 'retry', reason: '在资料详情中重新读取原文件' }),
     simplify: (id: string, revision: number, options: { componentIds?: string[]; strategy: Exclude<Strategy, 'original'>; purpose: string; preserveContacts: boolean; contactToleranceMm: number }) => post<{ jobId: string }>(`${projectPath(id)}/simplify`, { revision, ...options }),
     check: (id: string, revision: number) => post<{ jobId: string }>(`${projectPath(id)}/check`, { revision }),
     export: (id: string, revision: number) => post<{ jobId: string }>(`${projectPath(id)}/export`, { revision }),

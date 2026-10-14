@@ -1,6 +1,6 @@
 # Satellite Geometry service
 
-Current service version: **0.3.0**. The thermal workbench API and button mapping are documented in [workbench-api.md](../docs/workbench-api.md). `workbench.py` validates recipes, named copies, identity states, contact edits, immutable Skill bindings, and external evidence. `modeling.py` builds solid/face geometry; `skill_versions.py` stores versioned content and resources.
+Current service version: **0.3.1**. The thermal workbench API and button mapping are documented in [workbench-api.md](../docs/workbench-api.md). `workbench.py` validates recipes, named copies, identity states, contact edits, immutable Skill bindings, and external evidence. `modeling.py` builds solid/face geometry; `skill_versions.py` stores versioned content and resources.
 
 This is the independent STEP-first backend used by the DSH MCP tools and the web workbench. The API process stores project state and supervises CAD jobs. Each CAD job runs in a separate Python process so a long OCCT operation cannot freeze HTTP health, progress, or cancellation requests. The original `codex_web` application is not required at runtime.
 
@@ -34,6 +34,10 @@ Import, simplify, plan application, geometry checks, export, pose changes, and r
 ## Documents and field provenance
 
 Upload DOCX, XLSX, PDF, TXT, Markdown, CSV, or JSON through `POST /api/projects/{id}/documents`. PDF extraction is text only; scanned documents need a separate OCR workflow. Source documents and extracted text remain separate from geometry.
+
+From 0.3.1, XLSX empty fill styles are repaired only in an in-memory reading copy; original bytes, number formats and formula caches remain intact. Parsing failures return a saved document with `needs_recovery`, not HTTP 500. Empty inputs use `empty`; PDFs without text use `needs_ocr`. Identical bytes are deduplicated. `diagnostics`, `extractionMethod` and `recovery` describe the actual outcome; an unreadable document is not valid parameter evidence.
+
+`POST /api/projects/{id}/documents/recovery-request` durably claims one automatic recovery per document and records queue acknowledgement. The current bound DSH session runs the task. `POST /api/projects/{id}/documents/{doc}/recover` accepts the current `revision` and a controlled method (`retry`, `xlsx_xml`, `docx_xml`, `mark_unreadable`); it accepts no generated replacement text. XML fallback values have no inferred date/unit formatting. Agent attempts are bounded to two per document; unresolved files stay downloadable. These interfaces and dispatch metadata are documented in [workbench-api.md](../docs/workbench-api.md).
 
 Submit component properties through `POST /api/projects/{id}/metadata`:
 

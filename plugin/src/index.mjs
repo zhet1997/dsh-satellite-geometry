@@ -62,7 +62,9 @@ export async function apply(ctx, config) {
     const response = await fetch(`${endpoint}/api${route}`, { method: body === undefined ? 'GET' : 'POST',
       headers: { 'content-type': 'application/json', ...(bearer ? { authorization: `Bearer ${bearer}` } : {}) },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: signal || AbortSignal.timeout(15000) })
-    const value = await response.json()
+    let value
+    try { value = await response.json() }
+    catch { throw new Error(`几何服务返回了非标准响应（${response.status}），请查看运行日志`) }
     if (!response.ok) throw new Error(typeof value.detail === 'string' ? value.detail : `几何服务返回 ${response.status}`)
     return value
   }
@@ -141,6 +143,13 @@ export async function apply(ctx, config) {
         if(!await workflows.read(payload.sessionId))return {ok:true,value:{sessionId:payload.sessionId,projectId:payload.projectId,skillId:null}}
         return {ok:true,value:await bindWorkflow(payload,signal)}
       }
+      if (operation === 'documents.recovery') {
+        if (payload.action === 'claim') await bindWorkflow({sessionId:payload.sessionId,projectId:payload.projectId},signal)
+        const current = await workflows.read(payload.sessionId)
+        if (!current || current.projectId !== payload.projectId || current.serviceUrl !== endpoint) throw new Error('资料恢复工程与当前会话不一致')
+        const {projectId,...request}=payload
+        return {ok:true,value:await service(`/projects/${encodeURIComponent(projectId)}/documents/recovery-request`,request,signal)}
+      }
       if (operation === 'settings') return { ok: true, value: { serviceUrl: endpoint, tokenConfigured: Boolean(await token()), connectMcp: effective.connectMcp, workbenchUrl: '/satellite-geometry/' } }
       if (operation === 'configure') {
         const serviceUrl = normalizeEndpoint(payload?.serviceUrl)
@@ -156,11 +165,11 @@ export async function apply(ctx, config) {
         return { ok: true, value: await response.json() }
       }
       throw new Error('未知操作')
-    } catch (e) { return { ok: false, error: { code: 'internal', message: e.message } } }
+    } catch (e) { return { ok: false, error: { code: 'internal', message: e instanceof Error ? e.message : '操作未完成', details: {} } } }
   }
   // Exact routes share DSH's authenticated /api transport. Custom RPC channels
   // in 0.2.0-rc.2 incorrectly access webServer from the connection's owner.
-  for (const operation of ['selection.snapshot', 'workflow.bind', 'workflow.select', 'settings', 'configure', 'check']) {
+  for (const operation of ['selection.snapshot', 'workflow.bind', 'workflow.select', 'documents.recovery', 'settings', 'configure', 'check']) {
     ctx.connection.fetch.register({
       path: `/api/satellite-geometry/${operation}`, methods: ['POST'], requestBody: 'buffered',
       fetch: async request => {

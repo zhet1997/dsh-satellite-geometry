@@ -48,7 +48,12 @@ export type Checks = {
   assemblyStatus?: 'passed' | 'needs_review' | 'unknown' | 'failed';
   errors?: CheckIssue[]; uncertainComponentIds?: string[];
 };
-export type ProjectDocument = { id: string; name: string; path?: string; size?: number; extractionStatus?: string; warnings?: string[]; text?: string };
+export type ProjectDocument = {
+  id: string; name: string; path?: string; fileUrl?: string; size?: number;
+  extractionStatus?: string; extractionMethod?: string; warnings?: string[]; text?: string;
+  recovery?: { status: string; automaticAttempts: number; toolAttempts?: number; message?: string; reason?: string };
+  diagnostics?: { attempts: Array<{ method: string; status: string; errorType?: string; message?: string }>; availableRecoveryMethods: string[] };
+};
 export type ExportRecord = {
   stepReadable?: boolean; stepReadbackValid?: boolean; sourceTopologyValid?: boolean;
   status?: 'valid' | 'source_and_output_invalid_review_required' | 'source_defects_review_required';

@@ -38,6 +38,14 @@ function finite(value: number | undefined, digits = 1) {
 function normalizeProject(raw: Project): Project {
   return { ...raw, components: raw.components ?? [], tree: raw.tree ?? [], artifacts: raw.artifacts ?? {}, checks: raw.checks ?? {} };
 }
+function documentStatus(document: ProjectDocument) {
+  if (document.extractionStatus === 'extracted') return document.extractionMethod && document.extractionMethod !== 'native' ? '已自动恢复' : '文字已提取';
+  if (document.extractionStatus === 'empty') return '资料内容为空';
+  if (document.extractionStatus === 'unreadable' || document.recovery?.status === 'needs_review') return '已保存 · 内容待复核';
+  if (document.recovery?.status === 'queued') return '恢复任务已排队';
+  if (document.recovery?.status === 'claimed') return '恢复等待会话确认';
+  return document.extractionStatus === 'needs_ocr' ? '已保存 · 需要 OCR' : '已保存 · 待恢复';
+}
 
 export default function App() {
   const [apiBase, setApiBase] = useState(initialParams.get('apiBase') || (window.location.pathname.startsWith('/satellite-geometry/') ? '/api/cad' : '/api'));
@@ -87,6 +95,7 @@ export default function App() {
   const selectedProjectIdRef = useRef(projectId); selectedProjectIdRef.current = projectId;
   const pollingGeneration = useRef(0);
   const mounted = useRef(true);
+  const recoveryDispatches = useRef(new Set<string>());
   const active = busy || job?.status === 'running' || job?.status === 'queued';
   const selectedComponents = useMemo(() => project?.components.filter((component) => selected.includes(component.id)) ?? [], [project, selected]);
   const inspected = selectedComponents.length === 1 ? selectedComponents[0] : null;
@@ -159,6 +168,13 @@ export default function App() {
     const receive = (event: MessageEvent) => {
       if (event.source !== window.parent || event.origin !== parentOrigin()) return;
       const data = event.data as HostContext & { type?: string; ok?: boolean; message?: string; sessionId?:string };
+      if (data?.type === 'satellite-geometry:recovery-result') {
+        if (data.projectId === projectRef.current?.id) {
+          setNotice(data.message || '资料恢复状态已更新');
+          void refresh().catch(() => undefined);
+        }
+        return;
+      }
       if (data?.type === 'satellite-geometry:selection-result') {
         setChatTransferPending(false);
         if (data.ok === true) {
@@ -170,7 +186,7 @@ export default function App() {
       }
       if (data?.type !== 'satellite-geometry:context') return;
       if (data.apiBase && typeof data.apiBase === 'string') setApiBase(data.apiBase);
-      if (data.sessionId) setSessionId(data.sessionId);
+      if ('sessionId' in data) setSessionId(typeof data.sessionId === 'string' ? data.sessionId : undefined);
       if (data.projectId && typeof data.projectId === 'string') {
         if (data.projectId !== projectRef.current?.id) setProjectId(data.projectId);
         else if (typeof data.revision === 'number' && data.revision !== projectRef.current?.revision) void refresh().catch(() => undefined);
@@ -179,6 +195,17 @@ export default function App() {
     window.addEventListener('message', receive); emitHost('ready');
     return () => window.removeEventListener('message', receive);
   }, [refresh]);
+
+  useEffect(() => {
+    if (!project || !sessionId || active || window.parent === window) return;
+    const pending = (project.documents || []).filter(doc =>
+      ['needs_recovery', 'needs_ocr'].includes(doc.extractionStatus || '') && !doc.recovery?.automaticAttempts &&
+      !recoveryDispatches.current.has(`${apiBase}:${project.id}:${doc.id}`));
+    if (!pending.length) return;
+    pending.forEach(doc => recoveryDispatches.current.add(`${apiBase}:${project.id}:${doc.id}`));
+    emitHost('recover-documents', {projectId: project.id, documentIds: pending.map(doc => doc.id)});
+    setNotice('资料已保存，正在安排自动恢复');
+  }, [project, sessionId, active, apiBase]);
 
   const followJob = useCallback(async (id: string, forProject: string) => {
     const generation = ++pollingGeneration.current;
@@ -229,16 +256,39 @@ export default function App() {
     if (!project || (!stepFile && !documents.length) || active) return;
     if (stepFile && !/\.(step|stp)$/i.test(stepFile.name)) { setError('请选择 .step 或 .stp 几何文件'); return; }
     setBusy(true); setError('');
+    const failedUploads: File[] = [];
+    const pendingDocuments: string[] = [];
+    const uploadFailures: string[] = [];
     try {
-      for (const document of documents) await client.uploadDocument(project.id, document);
+      for (const document of documents) {
+        try {
+          const result = await client.uploadDocument(project.id, document);
+          if (['needs_recovery', 'needs_ocr'].includes(result.document.extractionStatus || '')) pendingDocuments.push(document.name);
+        } catch (reason) {
+          failedUploads.push(document); uploadFailures.push(`${document.name}：${errorText(reason)}`);
+        }
+      }
+      await refresh();
       if (stepFile) {
         setUploadProgress(0);
         const result = await client.uploadStep(project.id, stepFile, setUploadProgress);
         setShowImport(false); void followJob(result.jobId, project.id);
-      } else { await refresh(); setShowImport(false); setNotice('配套资料已添加'); }
-      setStepFile(null); setDocuments([]);
+      } else { setShowImport(false); }
+      setNotice(uploadFailures.length ? `其他输入已继续导入；以下资料尚未上传：${uploadFailures.join('；')}`
+        : pendingDocuments.length ? `${pendingDocuments.length} 份资料已保存，内容将交给当前 DSH 会话恢复`
+        : stepFile ? '资料已保存，几何解析已提交' : '配套资料已添加');
+      setStepFile(null); setDocuments(failedUploads);
     } catch (reason) { setError(errorText(reason)); }
     finally { setBusy(false); setUploadProgress(null); }
+  };
+  const retryDocument = async (document: ProjectDocument) => {
+    if (!projectRef.current || active) return;
+    setBusy(true);
+    try {
+      const result = await client.recoverDocument(projectRef.current.id, document.id, projectRef.current.revision);
+      setDocumentPreview(result.document); await refresh(); setNotice(documentStatus(result.document));
+    } catch (reason) { setNotice(`资料已保留，重新读取未完成：${errorText(reason)}`); await refresh().catch(() => undefined); }
+    finally { setBusy(false); }
   };
   const simplify = (local = false) => {
     if (!project) return;
@@ -356,7 +406,7 @@ export default function App() {
     {showCreate && <Modal title="新建几何项目" subtitle="为一份卫星装配建立独立、可追溯的简化项目。" onClose={() => !busy && setShowCreate(false)}><form onSubmit={(event) => { event.preventDefault(); void createProject(); }}><label className="form-field">项目名称<input autoFocus value={newName} onChange={(event) => setNewName(event.target.value)} maxLength={100} placeholder="例如：遥感卫星 · 热分析包络" /></label><div className="modal-actions"><button type="button" className="button subtle" onClick={() => setShowCreate(false)} disabled={busy}>取消</button><button className="button primary" disabled={!newName.trim() || busy}>{busy ? <LoaderCircle className="spin" size={15} /> : <Plus size={15} />}创建并导入</button></div></form></Modal>}
     {showImport && <Modal title={hasGeometry ? '添加或更新项目输入' : '导入卫星几何'} subtitle="STEP 提供几何与装配关系，配套资料用于补充工程语义。" onClose={() => !busy && setShowImport(false)}><label className="file-drop"><Upload size={25} /><strong>{stepFile?.name ?? '选择 STEP / STP 文件'}</strong><span>{stepFile ? `${finite(stepFile.size / 1024 / 1024, 2)} MB` : '保留原始坐标、装配层级及重复实例'}</span><input type="file" accept=".step,.stp" disabled={busy} onChange={(event) => setStepFile(event.target.files?.[0] ?? null)} /></label>{hasGeometry && <p className="small-note">重新导入 STEP 将建立新的几何修订，请在导入完成后重新检查简化结果。</p>}<label className="document-drop"><FileText size={20} /><div><strong>配套资料（可选）</strong><span>需求说明、组件清单、材料或热设计要求</span></div><input type="file" multiple accept=".pdf,.docx,.xlsx,.csv,.txt,.md,.json" disabled={busy} onChange={(event) => setDocuments(Array.from(event.target.files ?? []))} /><Plus size={17} /></label>{documents.length > 0 && <div className="upload-file-list">{documents.map((file, index) => <div key={`${file.name}-${index}`}><FileText size={13} /><span>{file.name}</span><button className="icon-button" onClick={() => setDocuments((values) => values.filter((_, i) => i !== index))} aria-label={`移除 ${file.name}`}><X size={12} /></button></div>)}</div>}{uploadProgress !== null && <div className="upload-progress"><span>上传几何文件 {Math.round(uploadProgress)}%</span><div className="progress-track"><i style={{ width: `${uploadProgress}%` }} /></div></div>}<div className="modal-actions"><button className="button subtle" onClick={() => setShowImport(false)} disabled={busy}>取消</button><button className="button primary" disabled={active || (!stepFile && !documents.length)} onClick={() => void importFiles()}>{busy ? <LoaderCircle className="spin" size={15} /> : <Upload size={15} />}{stepFile ? '导入并解析装配' : '添加资料'}</button></div></Modal>}
     {showSettings && <Modal title="计算服务连接" subtitle="在 DSH 中由插件统一连接；独立使用时可以指定服务地址。" onClose={() => setShowSettings(false)}><form onSubmit={(event) => { event.preventDefault(); setError(''); setShowSettings(false); void refreshProjects().catch((reason) => setError(errorText(reason))); }}><label className="form-field">接口地址<input value={apiBase} onChange={(event) => setApiBase(event.target.value)} placeholder="/api/cad" /></label><label className="inline-field">接触容差 / mm<input type="number" min={0} max={10} step={0.01} value={tolerance} onChange={e=>setTolerance(Number(e.target.value))}/></label><p className="small-note">本机 DSH 默认使用 /api/cad。独立开发可使用计算服务的完整 /api 地址。</p><div className="modal-actions"><button className="button primary">连接服务</button></div></form></Modal>}
-    {documentPreview && <Modal title={documentPreview.name} subtitle={documentPreview.extractionStatus === 'extracted' ? '已提取文字，可供 DSH 理解资料和追溯来源。' : '未提取到可用文字，扫描文档可能需要 OCR。'} onClose={() => setDocumentPreview(null)}>{documentPreview.warnings?.map((warning, index) => <p className="small-note" key={index}>{warning}</p>)}<pre className="document-preview">{documentPreview.text || '暂无可读文字。原始资料已保留。'}</pre><div className="modal-actions"><button className="button primary" onClick={() => setDocumentPreview(null)}>完成</button></div></Modal>}
+    {documentPreview && <Modal title={documentPreview.name} subtitle={documentStatus(documentPreview)} onClose={() => setDocumentPreview(null)}>{documentPreview.warnings?.map((warning, index) => <p className="small-note" key={index}>{warning}</p>)}{documentPreview.recovery?.reason && <p className="small-note">{documentPreview.recovery.reason}</p>}<pre className="document-preview">{documentPreview.text || '暂无可读文字。原始资料已保存，未读取到的工程参数保持未知。'}</pre>{documentPreview.diagnostics && <details><summary>读取诊断</summary><pre className="document-preview">{JSON.stringify(documentPreview.diagnostics, null, 2)}</pre></details>}<div className="modal-actions"><a className="button subtle" href={client.artifactUrl(documentPreview.fileUrl || `/api/projects/${project?.id}/documents/${documentPreview.id}/file`)} download>原始资料</a>{documentPreview.extractionStatus !== 'extracted' && <button className="button subtle" disabled={active} onClick={() => void retryDocument(documentPreview)}>重新读取</button>}<button className="button primary" onClick={() => setDocumentPreview(null)}>完成</button></div></Modal>}
     {semanticEdit && <Modal title={semanticEdit === 'rename' ? '修改组件名称' : '整理装配分组'} subtitle="仅调整工作装配树中的名称与分组，保留原始实体映射和位姿。" onClose={() => !busy && setSemanticEdit(null)}><label className="form-field">{semanticEdit === 'rename' ? '组件名称' : '分组名称'}<input autoFocus value={semanticName} onChange={(event) => setSemanticName(event.target.value)} maxLength={200} /></label><label className="form-field semantic-reason">整理依据<textarea value={semanticReason} onChange={(event) => setSemanticReason(event.target.value)} rows={3} placeholder="例如：根据组件清单，将同一分系统的安装部件归为一组" /></label><div className="modal-actions"><button className="button subtle" disabled={busy} onClick={() => setSemanticEdit(null)}>取消</button><button className="button primary" disabled={busy || !semanticName.trim() || !semanticReason.trim()} onClick={() => void applySemantics()}>保存装配关系</button></div></Modal>}
     {error && (showCreate || showImport || showSettings || semanticEdit) && <div className="modal-error" role="alert"><CircleAlert size={16} /><span>{error}</span><button className="icon-button" onClick={() => setError('')} aria-label="关闭错误"><X size={13} /></button></div>}
   </div>;
@@ -407,6 +457,6 @@ function FilesPanel({ project, active, artifactUrl, onUpload, onExport, onDocume
       </div>
     </section>
     <div className="artifact-grid">{artifacts.map((artifact) => { const url = artifactUrl(project?.artifacts[artifact.key]); return <div className={`artifact-card ${url ? 'available' : ''}`} key={artifact.key}><span className="file-format">{artifact.format}</span><h3>{artifact.name}</h3><p>{artifact.detail}</p>{url ? <a href={url} target="_blank" rel="noreferrer" download><ArrowDownToLine size={14} />下载产物</a> : <span className="pending-file">尚未生成</span>}</div>; })}</div>
-    <section className="documents-section"><div className="section-title"><h2>配套资料</h2><button className="button subtle" disabled={!project || active} onClick={onUpload}><Plus size={14} />添加资料</button></div><p className="small-note">在左侧聊天中说明项目名称，或先从几何视图选择组件并带入聊天，再请 DSH 阅读配套资料。</p>{project?.documents?.length ? project.documents.map((document, index) => <button className="document-row" key={index} onClick={() => onDocument(document)}><FileText size={18} /><span>{document.name}</span><small>{document.extractionStatus === 'extracted' ? '文字已提取' : document.extractionStatus === 'needs_ocr' ? '需要 OCR' : '查看资料'}</small><ArrowUpRight size={13} /></button>) : <div className="empty-documents"><FileText size={25} strokeWidth={1.2} /><p>可添加组件清单、需求说明和材料资料，<br />也可以只使用 STEP 完成几何简化。</p></div>}</section>
+    <section className="documents-section"><div className="section-title"><h2>配套资料</h2><button className="button subtle" disabled={!project || active} onClick={onUpload}><Plus size={14} />添加资料</button></div><p className="small-note">配套资料自动读取；待恢复资料会在当前 DSH 会话就绪后安排处理。</p>{project?.documents?.length ? project.documents.map((document, index) => <button className="document-row" key={index} onClick={() => onDocument(document)}><FileText size={18} /><span>{document.name}</span><small>{documentStatus(document)}</small><ArrowUpRight size={13} /></button>) : <div className="empty-documents"><FileText size={25} strokeWidth={1.2} /><p>可添加组件清单、需求说明和材料资料，<br />也可以只使用 STEP 完成几何简化。</p></div>}</section>
   </div>;
 }

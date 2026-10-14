@@ -16,7 +16,8 @@ const definitions = [
   ['list_projects', '列出卫星几何项目；项目与模型版本必须明确后才能修改。', object({}), 'GET', () => '/api/projects'],
   ['create_project', '创建独立卫星几何项目；STEP 和资料随后在工作台上传。', object({ name: str }, ['name']), 'POST', () => '/api/projects'],
   ['read_project', '读取项目、装配树、组件稳定ID、版本、资料列表和检查结论。大项目或写入后核验时传componentIds分批读取，避免结果过长。unknown不等于检查通过。', object({ ...project, componentIds: { type: 'array', minItems: 1, maxItems: 100, items: str } }, ['projectId']), 'GET', a => `/api/projects/${id(a.projectId)}`],
-  ['read_document', '读取用户上传资料解析出的文字及来源；抽取功耗、质量、材料、安装约束时必须引用原文，不得补造缺失信息。', object({ ...project, documentId: str }, ['projectId', 'documentId']), 'GET', a => `/api/projects/${id(a.projectId)}/documents/${id(a.documentId)}`],
+  ['read_document', '读取资料原文、来源、读取状态和diagnostics.availableRecoveryMethods；待恢复或无法读取不等于资料已理解，缺失参数保持未知。抽取属性必须引用原文。', object({ ...project, documentId: str }, ['projectId', 'documentId']), 'GET', a => `/api/projects/${id(a.projectId)}/documents/${id(a.documentId)}`],
+  ['recover_document', '针对已安排到本会话的资料执行受控恢复：retry重新兼容读取，xlsx_xml/docx_xml读取原文件XML，mark_unreadable记录无法恢复的原因。每次先读取最新revision，原文件不修改；自动最多两次尝试。XML数值未解释日期、单位或格式，禁止补造原文及物理参数。', object({ ...rev, documentId:str, sessionId:str, method:{type:'string',enum:['retry','xlsx_xml','docx_xml','mark_unreadable']},reason:{type:'string',maxLength:4000} }, ['projectId','revision','documentId','sessionId','method','reason']), 'POST', a => `/api/projects/${id(a.projectId)}/documents/${id(a.documentId)}/recover`],
   ['submit_metadata', '提交资料抽取的属性，origin默认document；每个已知字段（包括fixed:false）必须有对应field、documentId及精确原文quote。缺失属性省略，不能补造。motionConstraints来源field写全路径，如motionConstraints.maxTranslationMm。仅用户明确人工提供数值时允许origin:manual且省略sources，不能借manual规避资料证据校验。changedFields若提供必须列出实际提交的全部属性键。', object({ ...rev, components: { type: 'array', items: object({ id: str, origin: { type: 'string', enum: ['document', 'manual'], default: 'document' }, changedFields: { type: 'array', items: str }, massKg: { type: ['number', 'null'], minimum: 0 }, powerW: { type: ['number', 'null'], minimum: 0 }, fixed: { type: ['boolean', 'null'] }, thermalCritical: { type: ['boolean', 'null'] }, material: { type: ['string', 'null'] }, notes: { type: 'string' }, motionConstraints: motion, sources: { type: 'array', items: source } }, ['id']) }, notes: { type: 'string' } }, ['projectId', 'revision', 'components']), 'POST', a => `/api/projects/${id(a.projectId)}/metadata`],
   ['create_plan', '为指定组件提出可预览的几何简化计划。默认保持原world位姿，preserve/box/multibox是几何表示策略，不是移动指令；有疑义保留组件，真实接触/热关键特征优先保护。', object({ ...rev, summary: str, operations: { type: 'array', items: object({ componentId: str, action: { type: 'string', enum: ['preserve', 'box', 'multibox'] }, reason: str, sources: { type: 'array', items: source } }, ['componentId', 'action', 'reason']) } }, ['projectId', 'revision', 'summary', 'operations']), 'POST', a => `/api/projects/${id(a.projectId)}/plans`],
   ['apply_plan', '按用户本次任务授权自主执行简化方案，无需每个计划重复确认；用户要求仅预览时停止在计划。必须使用当前revision，不改变组件位姿。返回jobId后查询任务，不能提前宣称完成。', object({ ...rev, planId: str, preserveContacts: { type: 'boolean', description: '默认true；thermal必须true。assembly/envelope仅在用户明确允许简化接触组件时可为false，随后仍须检查并报告接触变化。' }, purpose: { type: 'string', enum: ['thermal', 'assembly', 'envelope'] } }, ['projectId', 'revision', 'planId', 'preserveContacts', 'purpose']), 'POST', a => `/api/projects/${id(a.projectId)}/plans/${id(a.planId)}/apply`],
@@ -65,7 +66,9 @@ export async function callTool(name, args = {}, endpoint = process.env.SATCAD_SE
   if (name === 'satellite_rebuild_equipment_envelopes') body.planId = args.planId
   if (name === 'satellite_submit_metadata' && Array.isArray(body.components)) body.components = body.components.map(component => ({ ...component, origin: component.origin || 'document' }))
   const response = await fetch(`${endpoint.replace(/\/+$/, '')}${route(args)}`, { method, signal: signal || AbortSignal.timeout(110000), headers: { 'content-type': 'application/json', ...(process.env.SATCAD_SERVICE_TOKEN ? { authorization: `Bearer ${process.env.SATCAD_SERVICE_TOKEN}` } : {}) }, ...(method === 'GET' ? {} : { body: JSON.stringify(body) }) })
-  const result = await response.json()
+  let result
+  try { result = await response.json() }
+  catch { throw new Error(`服务返回了非标准响应（${response.status}），请查看运行日志`) }
   if (!response.ok) throw new Error(`几何服务 ${response.status}: ${JSON.stringify(result)}`)
   if (name === 'satellite_read_project' && args.componentIds !== undefined) {
     if (!Array.isArray(args.componentIds) || args.componentIds.length < 1 || args.componentIds.length > 100) throw new Error('componentIds须包含1至100个组件')
@@ -79,7 +82,7 @@ export async function callTool(name, args = {}, endpoint = process.env.SATCAD_SE
   return result
 }
 export async function main() {
-  const server = new Server({ name: 'satellite-geometry', version: '0.3.0' }, { capabilities: { tools: {} } })
+  const server = new Server({ name: 'satellite-geometry', version: '0.3.1' }, { capabilities: { tools: {} } })
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }))
   server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
     try { return { content: [{ type: 'text', text: JSON.stringify(await callTool(request.params.name, request.params.arguments, undefined, extra.signal)) }] } }

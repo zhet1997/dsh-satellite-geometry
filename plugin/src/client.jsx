@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { selectionProblem } from './selection-contract.mjs'
+import { dispatchDocumentRecovery } from './document-recovery.mjs'
 const channel = '/api'
 const rpcMethod = operation => `satellite-geometry/${operation}`
 const button = { padding: '7px 11px', border: '1px solid #b8c8d7', borderRadius: 7, background: '#f1f7fc', color: '#18374e', cursor: 'pointer', fontSize: 12 }
@@ -23,7 +24,20 @@ function SelectionDock({ sessionId, useInput, inputActions, rpc }) {
     const receive = async event => {
       if (event.origin !== location.origin || event.source !== window.parent || window.parent === window) return
       const d = event.data
-      if (!d || !['satellite-geometry:selection', 'satellite-geometry:ask-selection', 'satellite-geometry:run-workflow', 'satellite-geometry:bind-skill'].includes(d.type)) return
+      if (!d || !['satellite-geometry:selection', 'satellite-geometry:ask-selection', 'satellite-geometry:run-workflow', 'satellite-geometry:bind-skill', 'satellite-geometry:recover-documents'].includes(d.type)) return
+      if (d.type === 'satellite-geometry:recover-documents') {
+        let message
+        try {
+          const result = await dispatchDocumentRecovery({rpc,projectId:d.projectId,documentIds:d.documentIds,sessionId,
+            isCurrent:()=>active&&live.current.sessionId===sessionId})
+          message = result.message
+        } catch { message = '原始资料已保存，恢复等待当前会话就绪' }
+        if(active) {
+          setNotice(message)
+          window.parent.postMessage({type:'satellite-geometry:recovery-result',projectId:d.projectId,sessionId,message},location.origin)
+        }
+        return
+      }
       if (d.type === 'satellite-geometry:bind-skill' || d.type === 'satellite-geometry:run-workflow') {
         try {
           const r=await rpc.call(channel,rpcMethod('workflow.bind'),{sessionId,projectId:d.projectId,revision:d.revision,selection:d.selection||[],...(d.skillId?{skillId:d.skillId}:{})})

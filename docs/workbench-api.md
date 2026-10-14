@@ -21,6 +21,8 @@
 | 新建工程 / 工程列表 | `POST /api/projects` / `GET /api/projects` |
 | 导入 STEP / 配套文件 | `POST /api/projects/{p}/import` / `POST /api/projects/{p}/documents`，multipart 字段 `file` |
 | 读取资料 / 原文件 | `GET /api/projects/{p}/documents/{id}` / 在同一路径加 `/file` |
+| 重新读取 / Agent 选择恢复方法 | `POST /api/projects/{p}/documents/{id}/recover` |
+| 一次性自动恢复领取 / 入队回执 | `POST /api/projects/{p}/documents/recovery-request` |
 | 工程与单机上下文 | `GET /api/projects/{p}/context` |
 | 中文名称与工程分类 | `POST /api/projects/{p}/identities` |
 | 查看当前建模方案 | `GET /api/projects/{p}/recipes` |
@@ -39,6 +41,18 @@
 相机、隔离、线框和左右视角同步属于显示状态；无需操作这些按钮即可测试建模和接触流程。外部系统可直接取得 GLB、区域世界坐标和面网格，自行渲染。显示状态不会改动几何或作业修订。
 
 ## 不经过界面的确定性流程
+
+### 资料读取与恢复（0.3.1）
+
+资料上传返回 `{document, revision, duplicate?}`。文件格式无法解析仍返回 HTTP 200，并登记原文件和真实状态：`extracted`、`needs_recovery`、`needs_ocr`、`empty` 或最终 `unreadable`。文件超过上传限制、格式不受支持、工程忙或服务故障仍按实际 HTTP 状态返回 JSON；不能把保存失败当成解析失败。相同 SHA-256 的上传直接返回既有资料，不重复增加修订或自动恢复次数。
+
+读取接口返回 `text`、`sections`、`sha256`、`fileUrl`、`extractionMethod`、`warnings`、`diagnostics.attempts`、`diagnostics.availableRecoveryMethods` 和 `recovery`。`xlsx_empty_fill_compat` 只补齐内存副本的空填充项，保留数值、日期格式和公式缓存。XML恢复带单元格/行引用，但不推断格式、日期、单位或无缓存公式的结果。
+
+恢复请求：`{revision, method, reason, sessionId?}`。方法为 `retry`、`xlsx_xml`（仅 XLSX）、`docx_xml`（仅 DOCX）和 `mark_unreadable`。后一项必须有原因。Agent使用领取任务时的 `sessionId`，最多执行两次恢复尝试；人工“重新读取”不需要会话。服务不接受自由编写的替代原文。实际内容或终态更新增加工程修订并使旧导出失效，原始字节不变。读取成功的资料不会被重复恢复降级。
+
+自动请求接口接收 `{sessionId, requestId, documentIds, action, message?}`。`action` 为 `claim`、`submitted` 或 `dispatch_failed`。会话须已绑定此工程，且当前没有几何作业。`claim`原子地登记每个资料唯一的自动尝试；其他页面或刷新后领取返回空列表。随后使用同一请求ID向 DSH `session/prompt` 排队，并提交回执。队列结果不确定时不会自动重发，资料保留供复核。领取和回执仅更新恢复元数据，不增加工程修订。当前状态与请求ID均可通过资料读取接口核对。
+
+工作台会继续导入其他资料和 STEP；几何作业结束、当前 DSH 会话就绪后触发恢复。缺少OCR、密码或可用正文时仍如实记录未读取，不认证参数完整性。
 
 1. 创建工程，上传 STEP，等待 import 作业 `completed`；随后上传配套资料。
 2. `GET /api/skills` 选择版本，用独立 `sessionId` 固定 Skill；可由外部执行器读取该版本正文后组织操作。

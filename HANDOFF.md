@@ -1,6 +1,6 @@
 # Agent Web → DSH 插件开发交接
 
-远端路径复核：**2026-10-07**；本机 0.3.0 开发与验收更新：**2026-10-10**。用途：接手本机卫星几何插件，或将原 Agent Web 的其他模块拆成可安装的 DSH 插件。远端路径、哈希与案例说明仍对应 10 月 7 日的只读观察；本轮没有再次修改或验证远端应用。
+远端路径复核：**2026-10-07**；本机 0.3.0 工作台验收：**2026-10-10**；本机 **0.3.1资料容错补丁：2026-10-14**。用途：接手本机卫星几何插件，或将原 Agent Web 的其他模块拆成可安装的 DSH 插件。远端路径、哈希与案例说明仍对应 10 月 7 日的只读观察；本轮没有再次修改或验证远端应用。最新资料读取、Agent恢复、安装包及测试工程见 [VALIDATION-0.3.1.md](docs/VALIDATION-0.3.1.md)。
 
 本机工程于 2026-10-07 迁到 **`D:\Codes\dsh-satellite-geometry`**。完整迁移记录见 [MIGRATION.md](MIGRATION.md)。本轮需求见 [requirements-20261009.md](docs/requirements-20261009.md)，业务接口见 [workbench-api.md](docs/workbench-api.md)，测试结论见 [VALIDATION-0.3.md](docs/VALIDATION-0.3.md)。
 
@@ -8,7 +8,7 @@
 
 1. 用户所称的原始 `web_agent` 项目，实际代码目录是 5090 服务器上的 **`/data/lbk/codex_web/agent-web`**。`/data/lbk/codex_web` 是外围工作区，包含原项目、数据、DSH 定制仓库与其他服务。
 2. 本机独立提取项目是 **`D:\Codes\dsh-satellite-geometry`**。它运行时不需要启动整个远端 Agent Web。
-3. 本机网页版 DSH 是 **Windows npm 安装的 `@deepseek-ai/dsh@0.2.0-rc.2`**；卫星插件与计算服务均为 **0.3.0**。宿主与插件/计算服务版本号指不同层。
+3. 本机网页版 DSH 是 **Windows npm 安装的 `@deepseek-ai/dsh@0.2.0-rc.2`**；卫星插件与计算服务均为 **0.3.1**。宿主与插件/计算服务版本号指不同层。
 4. 3080 是普通 DSH web profile，3081 是卫星专用 profile，8787 是 Docker 几何服务。DSH Windows 桌面应用另有内置运行时，不能把网页版兼容验证等同于桌面版验证。
 5. 原服务器上现在已有 **`/data/lbk/codex_web/deepseek-harness/packages/custom`**，含设计数据、设计结果、版本管理等 DSH 定制实现。迁移其他模块前，应先检查这里是否已有可复用实现，避免重复提取。
 6. 原始卫星 STEP 有 **3 份**：立方星、CATCH、天空智算实验星。前两份已复制到本机并验证；第三份只核对了远端原文件、配套资料与哈希，尚未在本插件中验收。
@@ -51,7 +51,7 @@
 | 主网页版监控日志 | `C:\Users\49076\.dsh\runtime\logs` | `dsh-web-*.out.log` / `*.err.log` |
 | 卫星启动日志、PID | `D:\Codes\dsh-satellite-geometry\runtime` | `dsh.stdout.log`、`dsh.stderr.log`、`dsh.pid`、`wsl-keepalive.pid`；PID 不应写死 |
 | 2026-10-02 升级备份 | `D:\Codes\dsh-satellite-geometry\runtime\dsh-backup-20261002` | 旧配置和监控脚本，可能含凭据；不打入发布包 |
-| 几何生产容器 | `dsh-satellite-geometry-geometry-1` | 镜像 `dsh-satellite-geometry:0.3.0`；2026-10-10 已更新并核对健康入口 |
+| 几何生产容器 | `dsh-satellite-geometry-geometry-1` | 镜像 `dsh-satellite-geometry:0.3.1`；2026-10-14 已更新并核对健康入口 |
 | Docker 命名卷 | `dsh-satellite-geometry_project-data` → 容器 `/data` | **正式项目状态及产物的主要持久位置** |
 | DSH 会话和存储 | `C:\Users\49076\.dsh\sessions`、`C:\Users\49076\.dsh\storages` | 不在几何 Docker 卷内 |
 | 固定选区引用 | `C:\Users\49076\.dsh\satellite-geometry\selection-contexts` | 绑定 DSH 会话、几何服务、projectId、revision 和组件 ID |
@@ -67,13 +67,14 @@
 
 | 文件 | 状态 |
 |---|---|
-| [lbk-dsh-satellite-geometry-0.3.0.tgz](/D:/Codes/dsh-satellite-geometry/release/lbk-dsh-satellite-geometry-0.3.0.tgz) | 当前热设计工作台包；面向 DSH 0.2.0-rc.2；含预构建 UI、MCP 与固定 Skill 入口 |
+| [lbk-dsh-satellite-geometry-0.3.1.tgz](/D:/Codes/dsh-satellite-geometry/release/lbk-dsh-satellite-geometry-0.3.1.tgz) | 当前热设计工作台包；面向 DSH 0.2.0-rc.2；增加资料兼容读取、真实状态和一次性 Agent 恢复 |
+| [lbk-dsh-satellite-geometry-0.3.0.tgz](/D:/Codes/dsh-satellite-geometry/release/lbk-dsh-satellite-geometry-0.3.0.tgz) | 历史热设计工作台包；原0.3验收基线 |
 | [lbk-dsh-satellite-geometry-0.2.0.tgz](/D:/Codes/dsh-satellite-geometry/dist/lbk-dsh-satellite-geometry-0.2.0.tgz) | 历史适配包；261,890 字节 |
 | [dsh-satellite-geometry-0.1.0.tgz](/D:/Codes/dsh-satellite-geometry/dist/dsh-satellite-geometry-0.1.0.tgz) | 旧包；261,441 字节；当前磁盘文件名如左，历史报告使用带 `lbk-` 前缀的名称 |
 | [dsh-satellite-geometry-source-0.1.0.zip](/D:/Codes/dsh-satellite-geometry/release/dsh-satellite-geometry-source-0.1.0.zip) | 旧源码发布快照，不含后来的 0.2 宿主适配 |
 | 本机 Git 基线 | 初始提取提交 `6244c57f2c4836ae5e67220899bf5d11f362fe2e`；迁移后的提交包含 DSH 0.2 适配，最新状态以 `git log -1` 为准 |
 
-0.3.0 包 SHA256 见 [VALIDATION-0.3.md](docs/VALIDATION-0.3.md)。历史 0.2.0 包 SHA256：`29ecc888781b0f6376bbfdecefd26d1554d88fc09caffee1f199226b8f1c9d6e`。
+0.3.1 包 SHA256 为 `81aafec5820e5c3f1b1d8a637e76897ccda7746a7b40668e13962969905b84b6`。0.3.0 包 SHA256 见 [VALIDATION-0.3.md](docs/VALIDATION-0.3.md)。历史 0.2.0 包 SHA256：`29ecc888781b0f6376bbfdecefd26d1554d88fc09caffee1f199226b8f1c9d6e`。
 
 旧包 SHA256：`d02dcba9fc3e8c2dccc0466b66cce320dc51660af1ab45e26c8abd7ac8abdc61`。
 

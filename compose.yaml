@@ -2,7 +2,7 @@ name: dsh-satellite-geometry
 services:
   geometry:
     build: .
-    image: dsh-satellite-geometry:0.3.0
+    image: dsh-satellite-geometry:0.3.1
     ports:
       - "${SATCAD_BIND_ADDRESS:-127.0.0.1}:${SATCAD_PORT:-8787}:8787"
     volumes:

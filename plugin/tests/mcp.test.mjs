@@ -21,8 +21,9 @@ test('real stdio MCP discovers tools and preserves revision/source payloads acro
   try {
     await client.connect(transport)
     const listing = await client.listTools()
-    assert.equal(listing.tools.length, 25)
+    assert.equal(listing.tools.length, 26)
     assert.ok(listing.tools.some(t => t.name === 'satellite_read_document'))
+    assert.ok(listing.tools.some(t => t.name === 'satellite_recover_document'))
     const args = { projectId: 'p1', revision: 7, components: [{ id: 'c1', powerW: 12.5, sources: [{ documentId: 'd1', quote: '额定功耗 12.5 W', field: 'powerW' }] }] }
     const result = await client.callTool({ name: 'satellite_submit_metadata', arguments: args })
     assert.ok(!result.isError)
@@ -55,6 +56,9 @@ test('real stdio MCP discovers tools and preserves revision/source payloads acro
     await client.callTool({name:'satellite_load_recipe_copy',arguments:{projectId:'p1',revision:8,componentId:'c1',copyId:'copy1'}})
     assert.equal(received.at(-1).url,'/api/projects/p1/components/c1/recipe-copies/copy1/load')
     assert.deepEqual(received.at(-1).body,{revision:8})
+    await client.callTool({name:'satellite_recover_document',arguments:{projectId:'p1',revision:8,documentId:'d1',sessionId:'session-a',method:'xlsx_xml',reason:'按诊断恢复原表格内容'}})
+    assert.equal(received.at(-1).url,'/api/projects/p1/documents/d1/recover')
+    assert.deepEqual(received.at(-1).body,{revision:8,sessionId:'session-a',method:'xlsx_xml',reason:'按诊断恢复原表格内容'})
   } finally { await client.close(); await new Promise(resolve => service.close(resolve)) }
 })
 

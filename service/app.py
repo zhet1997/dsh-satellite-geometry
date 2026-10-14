@@ -4,6 +4,8 @@ from __future__ import annotations
 import copy
 import asyncio
 import hmac
+import hashlib
+import logging
 import os
 import shutil
 import signal
@@ -23,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from service import storage as db
-from service.documents import extract_document
+from service.documents import document_summary, extract_document, recovery_methods, SUPPORTED_SUFFIXES
 
 EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="satellite-cad")
 
@@ -59,7 +61,7 @@ async def lifespan(app):
         await asyncio.to_thread(lambda: EXECUTOR.submit(lambda: None).result())
 
 
-app = FastAPI(title="Satellite Geometry Service", version="0.3.0", lifespan=lifespan)
+app = FastAPI(title="Satellite Geometry Service", version="0.3.1", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("SATCAD_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8787,http://127.0.0.1:8787,http://localhost:3080,http://127.0.0.1:3080").split(","),
                    allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Authorization"])
 
@@ -84,6 +86,12 @@ async def missing_resource(_: Request, exc: FileNotFoundError):
     return JSONResponse({"detail": "项目或资源不存在"}, status_code=404)
 
 
+@app.exception_handler(Exception)
+async def internal_error(_: Request, exc: Exception):
+    logging.getLogger(__name__).error("Unhandled service error", exc_info=exc)
+    return JSONResponse({"detail": "服务未能完成这项操作，详细原因已记录到运行日志"}, status_code=500)
+
+
 class ApiModel(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
@@ -94,6 +102,20 @@ class NewProject(ApiModel):
 
 class Revision(ApiModel):
     revision: int = Field(ge=0)
+
+
+class DocumentRecovery(Revision):
+    method: Literal["retry", "xlsx_xml", "docx_xml", "mark_unreadable"]
+    reason: str = Field(default="", max_length=4000)
+    sessionId: str | None = None
+
+
+class DocumentRecoveryRequest(ApiModel):
+    sessionId: str
+    requestId: str
+    documentIds: list[str] = Field(min_length=1, max_length=100)
+    action: Literal["claim", "submitted", "dispatch_failed"] = "claim"
+    message: str = Field(default="", max_length=1000)
 
 
 class Simplification(Revision):
@@ -284,7 +306,7 @@ def submit(project, kind, payload=None, increment=True):
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "satellite-geometry", "version": "0.3.0"}
+    return {"status": "ok", "service": "satellite-geometry", "version": "0.3.1"}
 
 
 @app.get("/api/capabilities")
@@ -413,7 +435,7 @@ def upload_document(project_id: str, file: UploadFile = File(...)):
     with db.LOCK:
         project = ready_project(project_id)
         suffix = Path(file.filename or "").suffix.lower()
-        if suffix not in {".docx", ".xlsx", ".pdf", ".txt", ".md", ".csv", ".json"}:
+        if suffix not in SUPPORTED_SUFFIXES:
             raise ValueError("不支持的资料格式")
         document_id = uuid.uuid4().hex
         folder = db.project_dir(project_id) / "documents"
@@ -423,12 +445,17 @@ def upload_document(project_id: str, file: UploadFile = File(...)):
             content = file.file.read(50 * 1024 * 1024 + 1)
             if len(content) > 50 * 1024 * 1024:
                 raise ValueError("资料文件不能超过50MB")
+            checksum = hashlib.sha256(content).hexdigest()
+            previous = next((doc for doc in project["documents"] if doc.get("sha256") == checksum), None)
+            if previous:
+                document = db.read_json(folder / f"{db.safe_id(previous['id'])}.parsed.json")
+                return {"document": document, "revision": project["revision"], "duplicate": True}
             path.write_bytes(content)
             document = extract_document(path, Path(file.filename or "document").name, document_id)
         finally:
             file.file.close()
         db.atomic_json(folder / f"{document_id}.parsed.json", document)
-        project["documents"].append({key: document[key] for key in ("id", "name", "sha256", "extractionStatus", "warnings")})
+        project["documents"].append(document_summary(document))
         db.invalidate_exports(project)
         db.save_project(project, increment=True)
         return {"document": document, "revision": project["revision"]}
@@ -437,7 +464,88 @@ def upload_document(project_id: str, file: UploadFile = File(...)):
 @app.get("/api/projects/{project_id}/documents/{document_id}")
 def read_document(project_id: str, document_id: str):
     get_project(project_id)
-    return db.read_json(db.project_dir(project_id) / "documents" / f"{db.safe_id(document_id)}.parsed.json")
+    document = db.read_json(db.project_dir(project_id) / "documents" / f"{db.safe_id(document_id)}.parsed.json")
+    return {**document, "fileUrl": f"/api/projects/{project_id}/documents/{document_id}/file"}
+
+
+def save_document(project: dict, document: dict, *, increment: bool = False):
+    folder = db.project_dir(project["id"]) / "documents"
+    db.atomic_json(folder / f"{db.safe_id(document['id'])}.parsed.json", document)
+    project["documents"] = [document_summary(document) if doc["id"] == document["id"] else doc for doc in project["documents"]]
+    if increment:
+        db.invalidate_exports(project)
+    db.save_project(project, increment=increment)
+
+
+@app.post("/api/projects/{project_id}/documents/recovery-request")
+def request_document_recovery(project_id: str, request: DocumentRecoveryRequest):
+    """Durable, at-most-once automatic dispatch, including across page reloads."""
+    with db.LOCK:
+        project = ready_project(project_id)
+        db.safe_id(request.sessionId)
+        db.safe_id(request.requestId)
+        if request.sessionId not in project.get("workflowBindings", {}):
+            raise ValueError("恢复资料前需将当前 DSH 会话绑定到此工程")
+        documents = []
+        if any(not any(doc["id"] == document_id for doc in project["documents"]) for document_id in request.documentIds):
+            raise FileNotFoundError()
+        originals = [read_document(project_id, document_id) for document_id in dict.fromkeys(request.documentIds)]
+        for document in originals:
+            document.pop("fileUrl", None)
+            recovery = document.setdefault("recovery", {"automaticAttempts": 0, "toolAttempts": 0})
+            if request.action == "claim":
+                if document["extractionStatus"] not in {"needs_recovery", "needs_ocr"} or recovery.get("automaticAttempts", 0):
+                    continue
+                recovery.update(status="claimed", automaticAttempts=1, requestId=request.requestId,
+                                sessionId=request.sessionId, requestedAt=db.now())
+            elif recovery.get("requestId") != request.requestId or recovery.get("sessionId") != request.sessionId:
+                continue
+            elif recovery.get("status") == "claimed":
+                recovery.update(status="queued" if request.action == "submitted" else "needs_review", message=request.message)
+            save_document(project, document)
+            documents.append(document_summary(document))
+        return {"documents": documents, "revision": project["revision"], "requestId": request.requestId}
+
+
+@app.post("/api/projects/{project_id}/documents/{document_id}/recover")
+def recover_document(project_id: str, document_id: str, request: DocumentRecovery):
+    with db.LOCK:
+        project = ready_project(project_id, request.revision)
+        if not any(doc["id"] == document_id for doc in project["documents"]):
+            raise FileNotFoundError()
+        previous = read_document(project_id, document_id)
+        previous.pop("fileUrl", None)
+        if previous["extractionStatus"] == "extracted":
+            return {"document": previous, "revision": project["revision"]}
+        suffix = Path(previous["name"]).suffix.lower()
+        if request.method not in recovery_methods(suffix):
+            raise ValueError("此资料不支持指定的恢复方式")
+        recovery = previous.get("recovery", {"automaticAttempts": 0, "toolAttempts": 0}).copy()
+        if request.sessionId:
+            db.safe_id(request.sessionId)
+            if recovery.get("sessionId") != request.sessionId:
+                raise ValueError("资料恢复请求与当前会话不一致")
+            if recovery.get("toolAttempts", 0) >= 2 and request.method != "mark_unreadable":
+                raise ValueError("自动恢复已尝试两次；请标记无法读取并说明缺失项")
+        if request.method == "mark_unreadable":
+            if not request.reason.strip():
+                raise ValueError("标记无法读取时须说明原因")
+            document = previous
+            document.update(extractionStatus="unreadable", text="", sections=[])
+            document["warnings"] = ["原始资料已保存，内容暂未能读取；相关工程参数保持未知", request.reason]
+        else:
+            source = db.project_dir(project_id) / "documents" / f"{db.safe_id(document_id)}{suffix}"
+            document = extract_document(source, previous["name"], document_id, method=request.method)
+            if document["sha256"] != previous["sha256"]:
+                raise ValueError("原始资料校验不一致，未提交恢复内容")
+            old_attempts = previous.get("diagnostics", {}).get("attempts", [])
+            document["diagnostics"]["attempts"] = (old_attempts + document["diagnostics"]["attempts"])[-20:]
+            recovery["toolAttempts"] = recovery.get("toolAttempts", 0) + 1
+        recovery.update(status="resolved" if document["extractionStatus"] == "extracted" else "needs_review",
+                        method=request.method, reason=request.reason, updatedAt=db.now())
+        document["recovery"] = recovery
+        save_document(project, document, increment=True)
+        return {"document": document, "revision": project["revision"]}
 
 
 def validate_sources(project_id, references):

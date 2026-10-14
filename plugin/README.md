@@ -1,4 +1,4 @@
-# 卫星几何 DSH 插件 0.3.0
+# 卫星几何 DSH 插件 0.3.1
 
 为 DSH 0.2.0-rc.2 提供真实 MCP 工具、资料抽取 Skill、服务地址设置、连接检查以及宽屏几何工作台。工作台左侧直接加载原生 DSH，右侧加载独立三维界面；聊天、模型配置和审批全部保留。分栏可以拖动，不受 DSH 原详情栏 520px 上限影响。
 
@@ -18,7 +18,7 @@ dsh.cmd --profile satellite-geometry --port 3081 --no-open
 下面在一个长期保留的目录中安装发布包；请把 `$satcadPackage` 改为实际下载位置。发布包包含预构建界面和运行时依赖清单，无需下载本仓库、Python、前端构建工具或运行 `npm run build`。
 
 ```powershell
-$satcadPackage = 'D:\Downloads\lbk-dsh-satellite-geometry-0.3.0.tgz'
+$satcadPackage = 'D:\Downloads\lbk-dsh-satellite-geometry-0.3.1.tgz'
 New-Item -ItemType Directory -Path 'D:\DSHPlugins\satellite-geometry' -Force | Out-Null
 Set-Location 'D:\DSHPlugins\satellite-geometry'
 npm init -y
@@ -47,6 +47,6 @@ DSH 0.2.0-rc.2 对浏览器请求启用认证。首次使用请从 DSH 启动时
 
 模型提交资料属性时，MCP 默认使用 `origin:document`，服务逐字段校验来源并保存 provenance。人工明确赋值使用 `origin:manual`；未提供属性保持未知。对于较大的模型，`satellite_read_project` 支持 `componentIds`，可以分批读取和核验，避免整项目结果过长。尺寸唯一匹配属于有记录的推断，不能替代工程身份确认。
 
-0.3.0 提供 25 个 MCP 工具及原生 `satellite_workflow_context`。顶部 Skill 面板查看、导入或另存候选正文/资源，并按会话固定版本。当前会话不能被另一版本悄悄替换；Host 在 `DSH_HOME/satellite-geometry/workflow-contexts` 保存正文、资源和指纹。工作台两层中文树、同步对比、单机隔离和右键聊天共用稳定 ID，Agent 修改由轮询自动刷新。
+0.3.1 提供 26 个 MCP 工具及原生 `satellite_workflow_context`。新增 `satellite_recover_document`，按资料诊断选择原文件读取方法或记录无法读取原因。自动恢复先在服务登记一次性请求，再排入当前 DSH 会话；刷新或并行页面不会重复触发。顶部 Skill 面板查看、导入或另存候选正文/资源，并按会话固定版本。当前会话不能被另一版本悄悄替换；Host 在 `DSH_HOME/satellite-geometry/workflow-contexts` 保存正文、资源和指纹。工作台两层中文树、同步对比、单机隔离和右键聊天共用稳定 ID，Agent 修改由轮询自动刷新。
 
 单机 recipe 支持 source、box、cylinder 组成，以及 solid/surface_shell 表示；面壳输出面集合、零实体，壳厚与热属性另存。命名副本共用源几何，载入时按参数重建。接触变化后标为待复核。工程师意见只记录，不在线更新 Skill。外部测试接口与证据说明见源码仓库 `docs/workbench-api.md`；插件不包含批量测试或 gate 框架。
